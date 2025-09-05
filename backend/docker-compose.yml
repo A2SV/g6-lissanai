@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # MongoDB database
+  mongodb:
+    image: mongo:7.0
+    container_name: lissanai-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: lissanai
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - lissanai-network
+
+  # LissanAI Backend API
+  api:
+    build: .
+    container_name: lissanai-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/lissanai?authSource=admin
+      MONGODB_DATABASE: lissanai
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+    depends_on:
+      - mongodb
+    networks:
+      - lissanai-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  lissanai-network:
+    driver: bridge

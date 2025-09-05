@@ -1,0 +1,1598 @@
+basePath: /api/v1
+definitions:
+  domain.ActivityCalendarDay:
+    properties:
+      activity_count:
+        description: Number of activities on this day
+        type: integer
+      activity_types:
+        description: Types of activities done
+        items:
+          type: string
+        type: array
+      date:
+        description: YYYY-MM-DD format
+        type: string
+      has_activity:
+        description: Whether user was active on this day
+        type: boolean
+    type: object
+  domain.ActivityCalendarResponse:
+    properties:
+      active_days:
+        type: integer
+      current_streak:
+        type: integer
+      longest_streak:
+        type: integer
+      summary:
+        $ref: '#/definitions/domain.ActivityCalendarSummary'
+      total_days:
+        type: integer
+      weeks:
+        items:
+          $ref: '#/definitions/domain.ActivityCalendarWeek'
+        type: array
+      year:
+        type: integer
+    type: object
+  domain.ActivityCalendarSummary:
+    properties:
+      activity_breakdown:
+        additionalProperties:
+          type: integer
+        description: Count by activity type
+        type: object
+      consecutive_weeks:
+        description: Weeks with at least one activity
+        type: integer
+      most_active_count:
+        description: Max activities in a single day
+        type: integer
+      most_active_day:
+        description: Date with most activities
+        type: string
+      total_activities:
+        type: integer
+    type: object
+  domain.ActivityCalendarWeek:
+    properties:
+      days:
+        items:
+          $ref: '#/definitions/domain.ActivityCalendarDay'
+        type: array
+    type: object
+  domain.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      user:
+        $ref: '#/definitions/domain.User'
+    type: object
+  domain.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  domain.ForgotPasswordRequest:
+    properties:
+      email:
+        example: john@lissanai.com
+        type: string
+    required:
+    - email
+    type: object
+  domain.FreezeStreakRequest:
+    properties:
+      reason:
+        example: Vacation
+        type: string
+    type: object
+  domain.LearningPathResponse:
+    properties:
+      category:
+        type: string
+      completed_lessons:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      duration:
+        description: in minutes
+        type: integer
+      id:
+        type: string
+      is_enrolled:
+        type: boolean
+      lesson_ids:
+        items:
+          type: string
+        type: array
+      level:
+        description: beginner, intermediate, advanced
+        type: string
+      title:
+        type: string
+      total_lessons:
+        type: integer
+      updated_at:
+        type: string
+      user_progress:
+        type: number
+    type: object
+  domain.LessonResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      duration:
+        description: in minutes
+        type: integer
+      id:
+        type: string
+      is_completed:
+        type: boolean
+      order:
+        type: integer
+      path_id:
+        type: string
+      quiz:
+        $ref: '#/definitions/domain.Quiz'
+      quiz_id:
+        type: string
+      title:
+        type: string
+      type:
+        description: video, text, quiz, exercise
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.LoginRequest:
+    properties:
+      email:
+        example: john@lissanai.com
+        type: string
+      password:
+        example: strongpassword123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  domain.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  domain.ProgressResponse:
+    properties:
+      completed_lessons:
+        items:
+          type: string
+        type: array
+      current_lesson:
+        type: string
+      enrolled_at:
+        type: string
+      last_accessed_at:
+        type: string
+      path_id:
+        type: string
+      path_title:
+        type: string
+      progress:
+        type: number
+      total_lessons:
+        type: integer
+    type: object
+  domain.PushTokenRequest:
+    properties:
+      platform:
+        example: ios
+        type: string
+      token:
+        example: fcm_token_123
+        type: string
+    required:
+    - platform
+    - token
+    type: object
+  domain.Question:
+    properties:
+      correct:
+        type: string
+      id:
+        type: string
+      options:
+        items:
+          type: string
+        type: array
+      points:
+        type: integer
+      text:
+        type: string
+      type:
+        description: multiple_choice, true_false, text
+        type: string
+    type: object
+  domain.Quiz:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      lesson_id:
+        type: string
+      questions:
+        items:
+          $ref: '#/definitions/domain.Question'
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.QuizResultResponse:
+    properties:
+      answers:
+        additionalProperties:
+          type: string
+        type: object
+      correct_answers:
+        additionalProperties:
+          type: string
+        type: object
+      created_at:
+        type: string
+      lesson_id:
+        type: string
+      max_score:
+        type: integer
+      passed:
+        type: boolean
+      percentage:
+        type: number
+      quiz_id:
+        type: string
+      score:
+        type: number
+    type: object
+  domain.QuizSubmissionRequest:
+    properties:
+      answers:
+        additionalProperties:
+          type: string
+        description: question_id -> answer
+        type: object
+      quiz_id:
+        type: string
+    required:
+    - answers
+    - quiz_id
+    type: object
+  domain.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    required:
+    - refresh_token
+    type: object
+  domain.RegisterRequest:
+    properties:
+      email:
+        example: john@lissanai.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+      password:
+        example: strongpassword123
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  domain.ResetPasswordRequest:
+    properties:
+      new_password:
+        example: newstrongpassword123
+        minLength: 8
+        type: string
+      token:
+        example: reset_token_123
+        type: string
+    required:
+    - new_password
+    - token
+    type: object
+  domain.SocialAuthRequest:
+    properties:
+      access_token:
+        example: ya29.a0AfH6SMC...
+        type: string
+      email:
+        example: john@lissanai.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+      provider:
+        example: google
+        type: string
+    required:
+    - access_token
+    - provider
+    type: object
+  domain.StreakInfo:
+    properties:
+      can_freeze:
+        type: boolean
+      current_streak:
+        type: integer
+      days_until_loss:
+        type: integer
+      freeze_count:
+        type: integer
+      last_activity_date:
+        type: string
+      longest_streak:
+        type: integer
+      max_freezes:
+        type: integer
+      streak_frozen:
+        type: boolean
+    type: object
+  domain.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  domain.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+    type: object
+  domain.UpdateProfileRequest:
+    properties:
+      name:
+        example: John Updated
+        type: string
+      settings:
+        additionalProperties: true
+        type: object
+    type: object
+  domain.User:
+    properties:
+      created_at:
+        type: string
+      current_streak:
+        description: Streak System
+        type: integer
+      email:
+        type: string
+      freeze_count:
+        type: integer
+      id:
+        type: string
+      last_activity_date:
+        type: string
+      longest_streak:
+        type: integer
+      name:
+        type: string
+      provider:
+        type: string
+      settings:
+        additionalProperties: true
+        type: object
+      streak_frozen:
+        type: boolean
+      updated_at:
+        type: string
+    type: object
+  entities.EditEmailRequest:
+    properties:
+      draft:
+        type: string
+      template_type:
+        type: string
+      tone:
+        type: string
+    required:
+    - draft
+    type: object
+  entities.EmailResponse:
+    properties:
+      body:
+        type: string
+      subject:
+        type: string
+    type: object
+  entities.GenerateEmailRequest:
+    properties:
+      prompt:
+        type: string
+      template_type:
+        type: string
+      tone:
+        type: string
+    required:
+    - prompt
+    type: object
+  entities.PracticeSentence:
+    properties:
+      id:
+        type: string
+      text:
+        type: string
+    type: object
+  entities.PronunciationFeedback:
+    properties:
+      full_feedback_summary:
+        type: string
+      mispronouncedwords:
+        items:
+          type: string
+        type: array
+      overall_accuracy_score:
+        type: number
+    type: object
+  handler.GrammarRequest:
+    properties:
+      text:
+        example: he have two cats
+        type: string
+    required:
+    - text
+    type: object
+  models.Correction:
+    properties:
+      corrected_phrase:
+        type: string
+      explanation:
+        $ref: '#/definitions/models.Explanation'
+      original_phrase:
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  models.Explanation:
+    properties:
+      amharic:
+        type: string
+      english:
+        type: string
+    type: object
+  models.Feedback:
+    properties:
+      feedback_points:
+        items:
+          $ref: '#/definitions/models.FeedbackPoint'
+        type: array
+      overall_summary:
+        type: string
+      score_percentage:
+        type: integer
+    type: object
+  models.FeedbackPoint:
+    properties:
+      focus_phrase:
+        type: string
+      suggestion:
+        type: string
+      type:
+        description: grammar, pronunciation, structure
+        type: string
+    type: object
+  models.GrammarResponse:
+    properties:
+      corrected_text:
+        example: He has two cats
+        type: string
+      corrections:
+        items:
+          $ref: '#/definitions/models.Correction'
+        type: array
+    type: object
+  models.NextQuestionReturn:
+    properties:
+      question:
+        type: string
+    type: object
+  models.SessionReturn:
+    properties:
+      question_number:
+        type: integer
+      session_id:
+        type: string
+    type: object
+  models.SessionSummary:
+    properties:
+      completed:
+        type: integer
+      created_at:
+        type: integer
+      final_score:
+        description: out of 100
+        type: integer
+      session_id:
+        type: string
+      strengths:
+        items:
+          type: string
+        type: array
+      total_questions:
+        type: integer
+      weaknesses:
+        items:
+          type: string
+        type: array
+    type: object
+  models.SubmitAnswerRequest:
+    properties:
+      answer:
+        example: My answer to the question
+        type: string
+      session_id:
+        example: 13c70d60-8dab-4b08-b454-5225dcca1809
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: AI-powered English coach for Ethiopians seeking global job opportunities
+  title: LissanAI API
+  version: "1.0"
+paths:
+  /api/v1/learning/lessons/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch the content for a specific lesson
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.LessonResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get lesson content
+      tags:
+      - Learning
+  /api/v1/learning/lessons/{id}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Mark a lesson as completed for the authenticated user
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark lesson as completed
+      tags:
+      - Learning
+  /api/v1/learning/paths:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all available learning paths with user progress if enrolled
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.LearningPathResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all learning paths
+      tags:
+      - Learning
+  /api/v1/learning/paths/{id}/enroll:
+    post:
+      consumes:
+      - application/json
+      description: Enroll the authenticated user in a specific learning path
+      parameters:
+      - description: Learning Path ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Enroll in a learning path
+      tags:
+      - Learning
+  /api/v1/learning/paths/{id}/progress:
+    get:
+      consumes:
+      - application/json
+      description: Get the authenticated user's progress for a specific learning path
+      parameters:
+      - description: Learning Path ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ProgressResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user progress for a learning path
+      tags:
+      - Learning
+  /api/v1/learning/quizzes/{id}/submit:
+    post:
+      consumes:
+      - application/json
+      description: Submit user's answers to a quiz for grading
+      parameters:
+      - description: Quiz ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Quiz answers
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.QuizSubmissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.QuizResultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Submit quiz answers
+      tags:
+      - Learning
+  /api/v1/pronunciation/activity:
+    post:
+      consumes:
+      - application/json
+      description: Record that a user completed a pronunciation practice session for
+        streak tracking
+      parameters:
+      - description: Pronunciation session data
+        in: body
+        name: request
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Record pronunciation practice activity
+      tags:
+      - Pronunciation
+  /api/v1/streak/activity:
+    post:
+      consumes:
+      - application/json
+      description: Record a user activity to maintain their streak - this is called
+        internally by other services
+      parameters:
+      - description: Type of activity
+        enum:
+        - lesson_completed
+        - quiz_passed
+        - daily_goal_met
+        in: query
+        name: activity_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Record activity (Internal)
+      tags:
+      - Streak
+  /api/v1/streak/calendar:
+    get:
+      description: Get GitHub-like activity calendar showing daily learning activities
+      parameters:
+      - description: 'Year (default: current year)'
+        example: 2025
+        in: query
+        name: year
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ActivityCalendarResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get activity calendar
+      tags:
+      - Streak
+  /api/v1/streak/freeze:
+    post:
+      consumes:
+      - application/json
+      description: Freeze the user's current streak to prevent it from being lost
+        due to inactivity (limited uses per month)
+      parameters:
+      - description: Freeze reason
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/domain.FreezeStreakRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Freeze streak
+      tags:
+      - Streak
+  /api/v1/streak/info:
+    get:
+      description: Get the current user's streak information including current streak,
+        longest streak, and freeze status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.StreakInfo'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user streak information
+      tags:
+      - Streak
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send password reset link to user's email
+      parameters:
+      - description: User Email
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: Request password reset
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password
+      parameters:
+      - description: User Login Credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate user's session token
+      parameters:
+      - description: Refresh Token (optional)
+        in: body
+        name: refreshToken
+        schema:
+          $ref: '#/definitions/domain.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MessageResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Use refresh token to get a new access token
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: refreshToken
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: Refresh access token
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account with email and password
+      parameters:
+      - description: User Registration Information
+        in: body
+        name: userInfo
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Set new password using reset token
+      parameters:
+      - description: Password Reset Information
+        in: body
+        name: resetInfo
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: Reset password
+      tags:
+      - Auth
+  /auth/social:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate or register user using social providers (Google, Apple)
+      parameters:
+      - description: Social Authentication Information
+        in: body
+        name: socialInfo
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SocialAuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: Social authentication
+      tags:
+      - Auth
+  /email/edit:
+    post:
+      consumes:
+      - application/json
+      description: Corrects and improves a user's drafted email to make it more professional.
+      parameters:
+      - description: The user's email draft and optional tone/template.
+        in: body
+        name: editRequest
+        required: true
+        schema:
+          $ref: '#/definitions/entities.EditEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.EmailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: Edit an existing email
+      tags:
+      - Email
+  /email/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generates a complete, professional email from a user's prompt (which
+        can be in English or Amharic).
+      parameters:
+      - description: The user's prompt and optional tone/template.
+        in: body
+        name: generateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/entities.GenerateEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.EmailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: Generate a new email
+      tags:
+      - Email
+  /grammar/check:
+    post:
+      consumes:
+      - application/json
+      description: Analyzes text for grammatical errors and returns corrections and
+        explanations.
+      parameters:
+      - description: Text to be checked
+        in: body
+        name: text
+        required: true
+        schema:
+          $ref: '#/definitions/handler.GrammarRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns corrected text and explanation
+          schema:
+            $ref: '#/definitions/models.GrammarResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Check Grammar
+      tags:
+      - Grammar
+  /interview/{session_id}/end:
+    post:
+      description: Ends the session and returns the final summary
+      parameters:
+      - description: Session ID
+        in: path
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session summary returned
+          schema:
+            $ref: '#/definitions/models.SessionSummary'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: End an interview session
+      tags:
+      - Interview
+  /interview/answer:
+    post:
+      consumes:
+      - application/json
+      description: Submit an answer for the current session question
+      parameters:
+      - description: Answer input
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubmitAnswerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Answer submitted successfully
+          schema:
+            $ref: '#/definitions/models.Feedback'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Submit user's answer
+      tags:
+      - Interview
+  /interview/question:
+    get:
+      description: Retrieves the next question for the current session
+      parameters:
+      - description: Session ID
+        in: query
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Next question returned
+          schema:
+            $ref: '#/definitions/models.NextQuestionReturn'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the next interview question
+      tags:
+      - Interview
+  /interview/start:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new interview session for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SessionReturn'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Start a new interview session
+      tags:
+      - Interview
+  /pronunciation/assess:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Accepts a target sentence and the user's recorded audio. It analyzes
+        the user's speech against the target text and returns detailed feedback on
+        their pronunciation. This is a multipart/form-data request.
+      parameters:
+      - description: The exact sentence the user was asked to say.
+        in: formData
+        name: target_text
+        required: true
+        type: string
+      - description: The user's recorded audio file (e.g., in ogg, flac, or wav format).
+        in: formData
+        name: audio_data
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.PronunciationFeedback'
+        "400":
+          description: Returns an error if the form data is invalid or missing.
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Returns an error if the AI service fails during assessment.
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: Assess user's pronunciation
+      tags:
+      - Pronunciation
+  /pronunciation/sentence:
+    get:
+      description: Dynamically generates a single, new English sentence tailored for
+        pronunciation practice for Amharic speakers. Each request returns a unique
+        sentence.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.PracticeSentence'
+        "500":
+          description: Returns an error if the AI service fails to generate a sentence.
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: Get a practice sentence
+      tags:
+      - Pronunciation
+  /users/me:
+    delete:
+      description: Allow a user to delete their account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MessageResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete user account
+      tags:
+      - Users
+    get:
+      description: Get the profile of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Update parts of the user's profile (name, settings)
+      parameters:
+      - description: Profile Update Information
+        in: body
+        name: profileInfo
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - Users
+  /users/me/push-token:
+    post:
+      consumes:
+      - application/json
+      description: Register a device token (FCM/APNs) for push notifications
+      parameters:
+      - description: Push Token Information
+        in: body
+        name: tokenInfo
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PushTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register push token
+      tags:
+      - Users
+  /ws/conversation:
+    get:
+      description: |-
+        Establishes a WebSocket for a real-time, voice-based conversation with an AI. The connection automatically terminates after 3 minutes.
+
+        ### Conversation Lifecycle:
+        1. **Connect**: The client establishes a WebSocket connection to this endpoint.
+        2. **Speak**: The user speaks. The client continuously streams their voice as binary audio messages.
+        3. **Pause**: The user stops speaking. After ~2-3 seconds of silence, the client sends a final text message.
+        4. **Process**: The server receives the signal and immediately sends back a text message `{"status": "processing"}`. The frontend UI should update to show this.
+        5. **Respond**: The server, after finishing the AI processing, sends the AI's spoken response back as a single binary audio message. The frontend plays this audio.
+        6. **Repeat**: The process repeats from step 2.
+        7. **Timeout**: The connection is automatically and forcefully closed by the server after 3 minutes.
+
+        ### Client Responsibilities:
+        - **Must** stream user's voice as raw `BinaryMessage` chunks.
+        - **Must** implement silence detection (~2-3 seconds).
+        - **Must** send a `TextMessage` with the JSON `{"type": "end_of_speech"}` after detecting silence.
+        - **Must** handle incoming `TextMessage` status updates (e.g., `{"status": "processing"}`) to update the UI.
+        - **Must** be able to receive and play back `BinaryMessage` audio from the server.
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+      summary: Real-time AI Voice Conversation
+      tags:
+      - Conversation
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Definitive Conversation Tester</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        button { margin: 5px; padding: 10px; font-size: 16px; cursor: pointer; }
+        button:disabled { cursor: not-allowed; opacity: 0.6; }  
+        #logs { margin-top: 20px; border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; white-space: pre-wrap; font-family: monospace; background-color: #f9f9f9; }
+        #status { font-weight: bold; font-size: 1.2em; color: #333; }
+        .status-idle { color: grey; }
+        .status-connected { color: blue; }
+        .status-recording { color: red; }
+        .status-processing { color: orange; }
+        .status-speaking { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Definitive Conversation Tester</h1>
+    <p><b>Instructions:</b> Connect, then click 'Start Conversation'. The conversation will loop automatically. Click 'End Conversation' to manually finish a turn.</p>
+    <div>
+        <label for="wsUrl">WebSocket URL:</label>
+        <input type="text" id="wsUrl" value="ws://localhost:8080/api/v1/ws/conversation" size="50">
+    </div>
+    <br>
+    <div>
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+        <button id="recordBtn" disabled>Start Conversation</button>
+    </div>
+    <div style="margin-top: 15px;">
+        <strong>Status:</strong> <span id="status" class="status-idle">Idle</span>
+    </div>
+
+    <h3>Logs</h3>
+    <div id="logs"></div>
+
+    <script>
+        // --- UI Elements and State ---
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const wsUrlInput = document.getElementById('wsUrl');
+        const logsDiv = document.getElementById('logs');
+        const statusSpan = document.getElementById('status');
+        let ws = null, mediaRecorder = null, audioContext = null, mediaStreamSource = null, analyser = null, silenceTimer = null;
+        let isRecording = false;
+
+        // --- Configuration ---
+        const SILENCE_THRESHOLD = 0.01;
+        const SILENCE_DURATION_MS = 2000;
+        const AUDIO_CHUNK_INTERVAL_MS = 500;
+
+        function log(message) {
+            logsDiv.innerHTML += `[${new Date().toLocaleTimeString()}] ${message}\n`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function setStatus(text, className) {
+            statusSpan.textContent = text;
+            statusSpan.className = className;
+        }
+
+        // --- WebSocket Handlers ---
+        connectBtn.onclick = () => {
+            const url = wsUrlInput.value;
+            log(`Attempting to connect to ${url}...`);
+            ws = new WebSocket(url);
+
+            ws.onopen = () => {
+                log("✅ WebSocket connection established.");
+                setStatus("Connected", "status-connected");
+                updateUI();
+            };
+
+            ws.onmessage = (event) => {
+                if (event.data instanceof Blob) {
+                    log(`⬅️ Received binary audio feedback! Size: ${event.data.size} bytes.`);
+                    const audioUrl = URL.createObjectURL(event.data);
+                    const audio = new Audio(audioUrl);
+                    
+                    setStatus("AI Speaking...", "status-speaking");
+                    audio.play();
+                    log("🔊 Playing received audio...");
+
+                    audio.onended = () => {
+                        log("🎤 AI finished speaking. Automatically starting next listening turn...");
+                        if (ws?.readyState === WebSocket.OPEN && !isRecording) {
+                            startRecording();
+                        }
+                    };
+
+                } else {
+                    log(`⬅️ Received text message: ${event.data}`);
+                    try {
+                        const serverMsg = JSON.parse(event.data);
+                        if (serverMsg.status === 'processing') {
+                            setStatus("Processing...", "status-processing");
+                        }
+                    } catch (e) {}
+                }
+            };
+
+            ws.onclose = () => {
+                log(`🔌 WebSocket connection closed.`);
+                setStatus("Idle", "status-idle");
+                stopRecording();
+                ws = null;
+                isRecording = false;
+                updateUI();
+            };
+            ws.onerror = () => log("❌ WebSocket error occurred.");
+        };
+
+        disconnectBtn.onclick = () => ws?.close();
+
+        // --- Recording Logic ---
+        recordBtn.onclick = () => {
+            if (isRecording) {
+                manualStop(); // Call our new function for manual stops.
+            } else {
+                startRecording();
+            }
+        };
+
+        function manualStop() {
+            log("🤚 User manually ended turn.");
+            if (ws?.readyState === WebSocket.OPEN) {
+                // First, send the signal to the backend to process what it has.
+                const controlMessage = JSON.stringify({ type: "end_of_speech" });
+                ws.send(controlMessage);
+                log("➡️ Sent 'end_of_speech' signal (manual stop).");
+            }
+            // Then, stop the recording on the frontend.
+            stopRecording();
+        }
+
+        async function startRecording() {
+            if (isRecording) return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                isRecording = true;
+                setStatus("Listening...", "status-recording");
+                log("🎤 Listening for your voice...");
+                updateUI();
+
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (event) => {
+                    // This check prevents sending chunks after recording has stopped.
+                    if (event.data.size > 0 && ws?.readyState === WebSocket.OPEN && isRecording) {
+                        ws.send(event.data);
+                        log(`➡️ Sent audio chunk (${event.data.size} bytes).`);
+                    }
+                };
+                mediaRecorder.start(AUDIO_CHUNK_INTERVAL_MS);
+
+                audioContext = new AudioContext();
+                mediaStreamSource = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                mediaStreamSource.connect(analyser);
+                checkForSilence();
+            } catch (err) {
+                log(`Error accessing microphone: ${err.message}`);
+            }
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+            // Set the flag FIRST to win the race condition.
+            isRecording = false; 
+            
+            mediaRecorder?.stop();
+            mediaStreamSource?.mediaStream.getTracks().forEach(track => track.stop());
+            audioContext?.close();
+            clearTimeout(silenceTimer);
+
+            log("🛑 Stopped listening.");
+            updateUI();
+        }
+
+        function checkForSilence() {
+            if (!isRecording) return;
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteTimeDomainData(dataArray);
+            let sum = 0;
+            for (const value of dataArray) sum += Math.pow((value - 128) / 128, 2);
+            const rms = Math.sqrt(sum / dataArray.length);
+
+            if (rms < SILENCE_THRESHOLD) {
+                if (!silenceTimer) {
+                    silenceTimer = setTimeout(() => {
+                        log(`🤫 Silence detected. Preparing to process.`);
+                        if (ws?.readyState === WebSocket.OPEN) {
+                            const controlMessage = JSON.stringify({ type: "end_of_speech" });
+                            ws.send(controlMessage);
+                            log(`➡️ Sent 'end_of_speech' signal (auto-detected).`);
+                            stopRecording();
+                        }
+                    }, SILENCE_DURATION_MS);
+                }
+            } else {
+                clearTimeout(silenceTimer);
+                silenceTimer = null;
+            }
+            requestAnimationFrame(checkForSilence);
+        }
+        
+        function updateUI() {
+            connectBtn.disabled = ws !== null;
+            disconnectBtn.disabled = ws === null;
+            recordBtn.disabled = ws === null;
+            recordBtn.textContent = isRecording ? 'End Conversation' : 'Start Conversation';
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
