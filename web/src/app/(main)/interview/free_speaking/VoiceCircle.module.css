@@ -1,0 +1,98 @@
+/* VoiceCircle.module.css */
+
+.container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The main SVG that holds our shapes */
+.blobSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* Start path from the top */
+  overflow: visible; /* Allow pulse to exceed bounds */
+}
+
+/* The main colored shape */
+.blobPath {
+  fill: #5a5a5a; /* Default Idle color */
+  transition: fill 0.4s ease-in-out;
+}
+
+/* The microphone icon in the center */
+.micIcon {
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  fill: white;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+}
+
+/* --- State: Idle --- */
+.stateIdle .container {
+  animation: pulse-idle 4s infinite ease-in-out;
+}
+.stateIdle .blobPath {
+  fill: #5a5a5a;
+}
+
+/* --- State: Recording --- */
+.stateRecording .blobPath {
+  fill: #e53935; /* Red */
+}
+.stateRecording .container {
+  /* Scaling is now handled by JavaScript based on volume */
+  transition: transform 0.1s linear;
+}
+
+/* --- State: Processing --- */
+.stateProcessing .blobPath {
+  fill: #333333; /* Darker background for the spinner */
+}
+.stateProcessing .micIcon {
+  opacity: 0.5;
+  transform: scale(0.8);
+}
+.processingSpinner {
+  stroke-width: 5;
+  stroke: #fdd835; /* Yellow */
+  fill: transparent;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  /* This animation creates the infinite spin effect */
+  animation: spin 1.2s linear infinite;
+}
+
+/* --- State: Responding (AI Speaking) --- */
+.stateResponding .blobPath {
+  fill: url(#speaking-gradient); /* The Google-style gradient */
+}
+.stateResponding .micIcon {
+  opacity: 0; /* Hide the mic when the AI speaks */
+  transform: scale(0.5);
+}
+
+/* --- Keyframe Animations --- */
+
+/* A very slow, subtle "breathing" for the idle state */
+@keyframes pulse-idle {
+  0% { transform: scale(0.97); }
+  50% { transform: scale(1); }
+  100% { transform: scale(0.97); }
+}
+
+/* The spinner animation for the processing state */
+@keyframes spin {
+  100% {
+      transform: rotate(360deg);
+  }
+}
