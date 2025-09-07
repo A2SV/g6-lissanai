@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:lissan_ai/core/network/bloc/connectivity_bloc.dart';
 import 'package:lissan_ai/core/network/network_info.dart';
+import 'package:lissan_ai/core/utils/helper/api_client_helper.dart';
 import 'package:lissan_ai/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:lissan_ai/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:lissan_ai/features/auth/data/repositories/auth_repository_impl.dart';
@@ -16,8 +17,12 @@ import 'package:lissan_ai/features/auth/domain/usecases/sign_up_usecase.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lissan_ai/features/writting_assistant/data/datasources/email_remote_data_source.dart';
 import 'package:lissan_ai/features/writting_assistant/data/datasources/grammar_remote_data_sources.dart';
+import 'package:lissan_ai/features/writting_assistant/data/datasources/pronunciation_remote_data_source.dart';
+import 'package:lissan_ai/features/writting_assistant/data/datasources/sentence_remote_data_source.dart';
 import 'package:lissan_ai/features/writting_assistant/data/repositories/email_repository_impl.dart';
 import 'package:lissan_ai/features/writting_assistant/data/repositories/grammar_repository_impl.dart';
+import 'package:lissan_ai/features/writting_assistant/data/repositories/pronunciation_repository_impl.dart';
+import 'package:lissan_ai/features/writting_assistant/data/repositories/sentence_repository_impl.dart';
 import 'package:lissan_ai/features/writting_assistant/domain/repositories/email_repository.dart';
 import 'package:lissan_ai/features/writting_assistant/domain/repositories/grammar_repository.dart';
 import 'package:lissan_ai/features/writting_assistant/domain/repositories/pronunciation_repository.dart';
@@ -25,9 +30,10 @@ import 'package:lissan_ai/features/writting_assistant/domain/repositories/senten
 import 'package:lissan_ai/features/writting_assistant/domain/usecases/check_grammar_usecase.dart';
 import 'package:lissan_ai/features/writting_assistant/domain/usecases/email_draft_usecase.dart';
 import 'package:lissan_ai/features/writting_assistant/domain/usecases/email_improve_usecase.dart';
+import 'package:lissan_ai/features/writting_assistant/domain/usecases/get_sentence_usecase.dart';
+import 'package:lissan_ai/features/writting_assistant/domain/usecases/send_pronunciation_usecase.dart';
 import 'package:lissan_ai/features/writting_assistant/presentation/bloc/writting_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:lissan_ai/core/utils/helper/api_client_helper.dart';
 import 'package:lissan_ai/features/practice_speaking/data/datasources/practice_speaking_remote_data_source.dart';
 import 'package:lissan_ai/features/practice_speaking/data/repositories/practice_speaking_repositories_impl.dart';
 import 'package:lissan_ai/features/practice_speaking/data/services/speech_to_text_service.dart';
@@ -38,6 +44,14 @@ import 'package:lissan_ai/features/practice_speaking/domain/usecases/recognize_s
 import 'package:lissan_ai/features/practice_speaking/domain/usecases/start_practice_session_usecase.dart';
 import 'package:lissan_ai/features/practice_speaking/domain/usecases/submit_answer_and_get_feedback_usecase.dart';
 import 'package:lissan_ai/features/practice_speaking/presentation/bloc/practice_speaking_bloc.dart';
+import 'package:lissan_ai/features/writting_assistant/data/datasources/saved_email_local_data_source.dart';
+import 'package:lissan_ai/features/writting_assistant/data/repositories/saved_email_repository_impl.dart';
+import 'package:lissan_ai/features/writting_assistant/domain/repositories/saved_email_repository.dart';
+import 'package:lissan_ai/features/writting_assistant/domain/usecases/save_email_usecase.dart';
+import 'package:lissan_ai/features/writting_assistant/domain/usecases/get_saved_emails_usecase.dart';
+import 'package:lissan_ai/features/writting_assistant/domain/usecases/delete_saved_email_usecase.dart';
+import 'package:lissan_ai/features/writting_assistant/domain/usecases/clear_all_emails_usecase.dart';
+import 'package:lissan_ai/features/writting_assistant/presentation/bloc/saved_email_bloc.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -142,6 +156,13 @@ Future<void> init() async {
     ),
   );
 
+  getIt.registerLazySingleton<SentenceRemoteDataSource>(
+    () => SentenceRemoteDataSourceImpl(client: getIt()),
+  );
+  getIt.registerLazySingleton<PronunciationRemoteDataSource>(
+    () => PronunciationRemoteDataSourceImpl(client: getIt()),
+  );
+
   // Repositories
   getIt.registerLazySingleton<EmailRepository>(
     () => EmailRepositoryImpl(
@@ -154,6 +175,17 @@ Future<void> init() async {
     () => GrammarRepositoryImpl(
       remoteDataSources: getIt<GrammarRemoteDataSources>(),
       networkInfo: getIt<NetworkInfo>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<SentenceRepository>(
+    () => SentenceRepositoryImpl(
+      remoteDataSource: getIt<SentenceRemoteDataSource>(),
+    ),
+  );
+  getIt.registerLazySingleton<PronunciationRepository>(
+    () => PronunciationRepositoryImpl(
+      remoteDataSource: getIt<PronunciationRemoteDataSource>(),
     ),
   );
 
@@ -170,12 +202,52 @@ Future<void> init() async {
     () => CheckGrammarUsecase(repository: getIt<GrammarRepository>()),
   );
 
+  getIt.registerLazySingleton(
+    () => GetSentenceUsecase(repository: getIt<SentenceRepository>()),
+  );
+
+  getIt.registerLazySingleton(
+    () =>
+        SendPronunciationUsecase(repository: getIt<PronunciationRepository>()),
+  );
+
   // Bloc
   getIt.registerFactory(
     () => WrittingBloc(
       getEmailDraftUsecase: getIt<EmailDraftUsecase>(),
       checkGrammarUsecase: getIt<CheckGrammarUsecase>(),
       improveEmailUsecase: getIt<EmailImproveUsecase>(),
+      saveEmailUsecase: getIt<SaveEmailUsecase>(),
+      getSentenceUsecase: getIt<GetSentenceUsecase>(),
+      sendPronunciationUsecase: getIt<SendPronunciationUsecase>(),
+    ),
+  );
+
+  // ----------------------
+  // Saved Email Dependencies
+  // ----------------------
+  getIt.registerLazySingleton<SavedEmailLocalDataSource>(
+    () => SavedEmailLocalDataSourceImpl(sharedPreferences: getIt()),
+  );
+
+  getIt.registerLazySingleton<SavedEmailRepository>(
+    () => SavedEmailRepositoryImpl(localDataSource: getIt()),
+  );
+
+  getIt.registerLazySingleton(() => SaveEmailUsecase(repository: getIt()));
+  getIt.registerLazySingleton(() => GetSavedEmailsUsecase(repository: getIt()));
+  getIt.registerLazySingleton(
+    () => DeleteSavedEmailUsecase(repository: getIt()),
+  );
+  getIt.registerLazySingleton(() => ClearAllEmailsUsecase(repository: getIt()));
+
+  // Add SavedEmailBloc registration:
+  getIt.registerFactory(
+    () => SavedEmailBloc(
+      saveEmailUsecase: getIt(),
+      getSavedEmailsUsecase: getIt(),
+      deleteSavedEmailUsecase: getIt(),
+      clearAllEmailsUsecase: getIt(),
     ),
   );
 

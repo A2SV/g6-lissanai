@@ -45,22 +45,7 @@ class OnboardingStep extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    width: 10,
-                    color: const Color.fromARGB(255, 209, 207, 207),
-                  ),
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: AssetImage(image),
-                    fit: BoxFit.fitHeight,
-                  ),
-                ),
-              ),
+              Image.asset(image, width: 200, height: 200),
               const SizedBox(height: 15),
               Container(
                 padding: const EdgeInsets.symmetric(

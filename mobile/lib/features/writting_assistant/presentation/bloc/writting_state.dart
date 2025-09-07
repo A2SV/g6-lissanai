@@ -21,7 +21,6 @@ class GrammarError extends WrittingState {
   GrammarError({required this.message});
 }
 
-
 //--- for email --//
 // email draft
 class EmailDraftLoading extends WrittingState {}
@@ -56,7 +55,6 @@ class ImproveEmailLoaded extends WrittingState {
   List<Object> get props => [improvedEmail];
 }
 
-
 class ImproveEmailError extends WrittingState {
   final String message;
 
@@ -64,4 +62,17 @@ class ImproveEmailError extends WrittingState {
 
   @override
   List<Object> get props => [message];
+}
+
+// save email
+class EmailDraftSaved extends WrittingState {
+  final EmailDraft emailDraft;
+
+  EmailDraftSaved({required this.emailDraft});
+}
+
+class ImprovedEmailSaved extends WrittingState {
+  final EmailImprove improvedEmail;
+
+  ImprovedEmailSaved({required this.improvedEmail});
 }

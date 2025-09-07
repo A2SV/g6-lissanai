@@ -101,15 +101,15 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
   void _endSession({bool timeout = false}) {
     if (!_isSessionActive) return;
     _log("--- SESSION ENDED ---");
-    
+
     _sessionTimer?.cancel();
     _sessionTimer = null;
-    
+
     // Make sure we stop recording if the user ends the session while speaking
     if (_isRecording) {
       _stopRecording();
     }
-    
+
     setState(() {
       _isSessionActive = false;
       if (timeout) {
@@ -167,7 +167,9 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
   Future<void> _playAudio(Uint8List audioBytes) async {
     _setStatus("AI Speaking...", ConversationState.speaking);
     _aiAnimationTimer?.cancel();
-    _aiAnimationTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    _aiAnimationTimer = Timer.periodic(const Duration(milliseconds: 100), (
+      timer,
+    ) {
       if (!mounted) {
         timer.cancel();
         return;
@@ -193,7 +195,9 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
             _log("AI finished, starting next turn automatically.");
             _startRecording(); // This creates the loop
           } else {
-            _log("AI finished, but session is now inactive. Returning to idle.");
+            _log(
+              "AI finished, but session is now inactive. Returning to idle.",
+            );
             _setStatus("Session Ended", ConversationState.connected);
           }
         }
@@ -281,7 +285,7 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
     _silenceTimer = null;
 
     // Set status to "Processing..." while waiting for AI, but only if the session is still active
-    if(_isSessionActive) {
+    if (_isSessionActive) {
       _setStatus("Processing...", ConversationState.processing);
     }
     _log("✅ Stopped listening TURN.");
@@ -340,7 +344,7 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
             onTap: () {
               // The blob's only job during a session is to manually end a turn
               if (_currentState == ConversationState.listening) {
-                _sendEndOfSpeechSignal(); 
+                _sendEndOfSpeechSignal();
               }
             },
           ),
@@ -351,10 +355,7 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
             label: const Text("End Session"),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700]),
           ),
-        ] 
-        // Show the Start button ONLY when no session is active
-        else ...[
-          // Using a simple button to start. You could also use the blob.
+        ] else ...[
           SizedBox(
             width: 150,
             height: 150,
@@ -367,10 +368,7 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
               ),
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.play_arrow, size: 60),
-                  Text("Start"),
-                ],
+                children: [Icon(Icons.play_arrow, size: 60), Text("Start")],
               ),
             ),
           ),

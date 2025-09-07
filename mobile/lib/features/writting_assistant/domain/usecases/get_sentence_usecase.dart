@@ -5,7 +5,7 @@ import 'package:lissan_ai/features/writting_assistant/domain/repositories/senten
 
 class GetSentenceUsecase {
   final SentenceRepository repository;
-  GetSentenceUsecase(this.repository);
+  GetSentenceUsecase({required this.repository});
   Future<Either<Failure, Sentence>> call() {
     return repository.getSentence();
   }

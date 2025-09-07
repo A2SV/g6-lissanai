@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
+// ignore: depend_on_referenced_packages
 import 'package:http_parser/http_parser.dart'; // for MediaType
 import 'package:lissan_ai/features/writting_assistant/data/model/pronunciation_feedback_model.dart';
 

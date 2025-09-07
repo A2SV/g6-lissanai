@@ -1,65 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lissan_ai/features/writting_assistant/presentation/bloc/grammar_bloc.dart';
-import 'package:lissan_ai/features/writting_assistant/presentation/bloc/grammar_event.dart';
-import 'package:lissan_ai/features/writting_assistant/presentation/bloc/grammar_state.dart';
-
+import 'package:lissan_ai/features/writting_assistant/presentation/bloc/writting_bloc.dart';
+import 'package:lissan_ai/features/writting_assistant/presentation/bloc/writting_event.dart';
+import 'package:lissan_ai/features/writting_assistant/presentation/bloc/writting_state.dart';
 import 'package:lissan_ai/features/writting_assistant/presentation/widgets/practice_word_card.dart';
 import 'package:lissan_ai/features/writting_assistant/presentation/widgets/sentence_display.dart';
 import 'package:lissan_ai/features/writting_assistant/presentation/widgets/step_listen_section.dart';
 import 'package:lissan_ai/features/writting_assistant/presentation/widgets/step_practice_section.dart';
 import 'package:lissan_ai/features/writting_assistant/presentation/widgets/pronunciation_feedback_section.dart';
 
-class AudioRecorderPlayerApp extends StatefulWidget {
-  const AudioRecorderPlayerApp({super.key});
+class PronounciationPage extends StatefulWidget {
+  const PronounciationPage({super.key});
 
   @override
-  State<AudioRecorderPlayerApp> createState() => _AudioRecorderPlayerAppState();
+  State<PronounciationPage> createState() => _PronounciationPageState();
 }
 
-class _AudioRecorderPlayerAppState extends State<AudioRecorderPlayerApp> {
+class _PronounciationPageState extends State<PronounciationPage> {
   @override
   void initState() {
     super.initState();
-    context.read<GrammarBloc>().add(GetSentenceEvent());
+    context.read<WrittingBloc>().add(GetSentenceEvent());
   }
 
   void _fetchNextSentence() {
-    context.read<GrammarBloc>().add(GetSentenceEvent());
+    context.read<WrittingBloc>().add(GetSentenceEvent());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Pronunciation Coach',
-          style: GoogleFonts.inter(
-              fontWeight: FontWeight.bold, color: const Color(0xFF112D4F)),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 1.0,
-        centerTitle: true,
-      ),
-      body: BlocConsumer<GrammarBloc, GrammarState>(
+      body: BlocConsumer<WrittingBloc, WrittingState>(
         listener: (context, state) {
           if (state is GrammarError) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         builder: (context, state) {
           if (state is SentenceLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: SpinKitCircle(color: Colors.grey));
           } else if (state is GrammarError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Something went wrong',
-                      style: TextStyle(color: Colors.red)),
+                  const Text(
+                    'Something went wrong',
+                    style: TextStyle(color: Colors.red),
+                  ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _fetchNextSentence,
@@ -72,7 +65,6 @@ class _AudioRecorderPlayerAppState extends State<AudioRecorderPlayerApp> {
 
           String sentence = '';
           List<String>? mispronouncedWords;
-          bool showFeedback = state is PronunciationLoaded;
 
           if (state is SentenceLoaded) {
             sentence = state.sentence.text;
@@ -114,6 +106,7 @@ class _AudioRecorderPlayerAppState extends State<AudioRecorderPlayerApp> {
                         child: Column(
                           children: [
                             Text(
+                              // ignore: prefer_single_quotes
                               "Great job! Ready for the next one?",
                               style: GoogleFonts.inter(
                                 fontSize: 14,
@@ -125,15 +118,22 @@ class _AudioRecorderPlayerAppState extends State<AudioRecorderPlayerApp> {
                               width: double.infinity,
                               child: ElevatedButton.icon(
                                 onPressed: _fetchNextSentence,
-                                icon: const Icon(Icons.arrow_forward_rounded),
+                                icon: const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                ),
                                 label: Text(
                                   'Next Sentence',
                                   style: GoogleFonts.inter(
-                                      fontWeight: FontWeight.bold),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                                 style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF112D4F),
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: 16),
+                                    vertical: 16,
+                                  ),
                                   textStyle: const TextStyle(fontSize: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),

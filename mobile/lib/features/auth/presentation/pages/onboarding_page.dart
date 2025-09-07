@@ -18,19 +18,40 @@ class _OnboardingPageState extends State<OnboardingPage> {
       title: 'The Most Efficient Way to Learn Professional English',
       subtitle:
           'Master English communication with an AI-powered coach designed specifically for Ethiopian professionals seeking global opportunities.',
-      image: 'assets/images/avatar.png',
+      image: 'assets/videos/welcomingmascot.gif',
       smallTitle: 'Meet Your AI English Coach',
       description:
           'I\'m here to help you master English for global opportunities',
     ),
+
     const OnboardingStep(
       title: 'Learn at Your Own Pace',
       subtitle:
           'Practice English anytime, anywhere with personalized exercises and AI feedback to improve your skills efficiently.',
-      image: 'assets/images/avatar1.png',
+      image: 'assets/videos/welcomingmascot.gif',
       smallTitle: 'Your Personal English Coach',
       description:
           'Receive real-time guidance and tips to boost your communication confidence.',
+    ),
+
+    const OnboardingStep(
+      title: 'Perfect Your Writing Skills',
+      subtitle:
+          'Draft emails, check grammar, and write confidently with AI-assisted writing tools.',
+      image: 'assets/videos/readingmascot.gif',
+      smallTitle: 'Email Drafting & Grammar Checking',
+      description:
+          'Compose professional emails and documents effortlessly with AI suggestions.',
+    ),
+
+    const OnboardingStep(
+      title: 'Prepare for Job Interviews',
+      subtitle:
+          'Practice mock interviews and get real-time feedback to improve your speaking and confidence.',
+      image: 'assets/videos/welcomingmascot.gif',
+      smallTitle: 'Mock Interviews',
+      description:
+          'Simulate real interview scenarios and get AI guidance to answer like a pro.',
     ),
   ];
 

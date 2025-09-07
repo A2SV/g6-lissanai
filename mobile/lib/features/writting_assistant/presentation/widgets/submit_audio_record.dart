@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:lissan_ai/features/writting_assistant/presentation/bloc/grammar_bloc.dart';
-import 'package:lissan_ai/features/writting_assistant/presentation/bloc/grammar_event.dart';
-import 'package:lissan_ai/features/writting_assistant/presentation/bloc/grammar_state.dart';
+import 'package:lissan_ai/features/writting_assistant/presentation/bloc/writting_bloc.dart';
+import 'package:lissan_ai/features/writting_assistant/presentation/bloc/writting_event.dart';
 
 class SubmitAudioRecord extends StatefulWidget {
   final String audioPath;
@@ -53,12 +52,12 @@ class _SubmitAudioRecordState extends State<SubmitAudioRecord> {
     });
 
     try {
-      final currentState = context.read<GrammarBloc>().state;
+      final currentState = context.read<WrittingBloc>().state;
       final sentenceText = (currentState is SentenceLoaded)
           ? currentState.sentence.text
           : widget.senctence;
 
-      context.read<GrammarBloc>().add(
+      context.read<WrittingBloc>().add(
         SendPronunciationEvent(
           audioFilePath: widget.audioPath,
           targetText: sentenceText,

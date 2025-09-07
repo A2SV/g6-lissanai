@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lissan_ai/features/writting_assistant/presentation/bloc/grammar_bloc.dart';
-import 'package:lissan_ai/features/writting_assistant/presentation/bloc/grammar_event.dart';
+import 'package:lissan_ai/features/writting_assistant/presentation/bloc/writting_bloc.dart';
+import 'package:lissan_ai/features/writting_assistant/presentation/bloc/writting_event.dart';
+
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -58,12 +59,12 @@ class _StepPracticeSectionState extends State<StepPracticeSection> {
       if (path != null) {
         debugPrint('Recording stopped, file saved to: $path');
         // Automatically send the recording to the BLoC
-        context.read<GrammarBloc>().add(
-              SendPronunciationEvent(
-                audioFilePath: path,
-                targetText: widget.sentence,
-              ),
-            );
+        context.read<WrittingBloc>().add(
+          SendPronunciationEvent(
+            audioFilePath: path,
+            targetText: widget.sentence,
+          ),
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sending for evaluation...')),
         );
@@ -98,13 +99,10 @@ class _StepPracticeSectionState extends State<StepPracticeSection> {
         const SizedBox(height: 20),
         Text(
           'Press and Hold to Record',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.grey.shade700,
-          ),
+          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade700),
         ),
         const SizedBox(height: 10),
-        
+
         // Hold-to-Record Button
         GestureDetector(
           onLongPressStart: (_) => _startRecording(),

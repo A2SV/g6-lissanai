@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lissan_ai/features/writting_assistant/presentation/pages/pronounciation_page.dart';
 
 class Dashboard extends StatelessWidget {
   const Dashboard({super.key});
@@ -67,17 +68,10 @@ class Dashboard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Column(
                       children: [
-                        Container(
-                          height: 70,
-                          width: 70,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white24,
-                            image: DecorationImage(
-                              image: AssetImage('assets/images/avatar.png'),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                        Image.asset(
+                          'assets/videos/dashboard.gif',
+                          width: 100,
+                          height: 100,
                         ),
                         const SizedBox(height: 8),
                         const Text(
@@ -165,7 +159,14 @@ class Dashboard extends StatelessWidget {
 
               // Pronunciation Coach Button
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PronounciationPage(),
+                    ),
+                  );
+                },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(

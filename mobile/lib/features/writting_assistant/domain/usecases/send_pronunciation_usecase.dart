@@ -7,7 +7,7 @@ import 'package:lissan_ai/features/writting_assistant/domain/repositories/pronun
 class SendPronunciationUsecase {
   final PronunciationRepository repository;
 
-  SendPronunciationUsecase(this.repository);
+  SendPronunciationUsecase({required this.repository});
 
   Future<Either<Failure, PronunciationFeedback>> call(
     String sentence,

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-// 🎨 Theme constants
 const Color kPrimaryColor = Color(0xFF112D4F);
-const Color kAccentColor = Color(0xFFE5A642);
-const Color kBackgroundColor = Colors.white;
 const Color kCardBackgroundColor = Color(0xFFFFFFFF);
 const Color kTextColor = Color(0xFF333333);
 const Color kLightTextColor = Color(0xFF6B7280);
@@ -12,9 +9,7 @@ const Color kGreenAccent = Color(0xFF00C853);
 const double kDefaultPadding = 16.0;
 const double kSmallPadding = 8.0;
 const double kMediumPadding = 12.0;
-const double kLargePadding = 24.0;
 const double kBorderRadius = 12.0;
-const double kSmallBorderRadius = 8.0;
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -24,71 +19,73 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
+  int selectedYear = DateTime.now().year;
+  final List<int> years = [
+    DateTime.now().year - 2,
+    DateTime.now().year - 1,
+    DateTime.now().year,
+  ];
+
+  final List<String> months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  // Dummy activity data: [year][month][day]
+  final Map<int, List<List<int>>> activityPerYear = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (var year in years) {
+      activityPerYear[year] = List.generate(
+        12,
+        (month) => List.generate(
+          DateTime(year, month + 1, 0).day, // days in month
+          (day) => (day * 3 + month) % 5,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileHeader(),
-            const SizedBox(height: 10),
-            // 🔹 Stats row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: kDefaultPadding),
-              child: Row(
-                children: [
-                  _buildStatCard(
-                    '47',
-                    'Sessions',
-                    '+12 this month',
-                    valueColor: kGreenAccent,
-                  ),
-                  const SizedBox(width: kSmallPadding),
-                  _buildStatCard('28', 'Achievements', '3 new'),
-                  const SizedBox(width: kSmallPadding),
-                  _buildStatCard(
-                    '156',
-                    'Hours Practiced',
-                    '+8 this week',
-                    valueColor: kGreenAccent,
-                  ),
-                  const SizedBox(width: kSmallPadding),
-                  _buildStatCard(
-                    '7',
-                    'Day Streak',
-                    '🔥 Active',
-                    valueColor: const Color(0xFFFFA000),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: kDefaultPadding),
-
-            // 🔹 Content sections
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: kDefaultPadding),
-              child: Column(
-                children: [
-                  _buildAboutSection(),
-                  const SizedBox(height: kDefaultPadding),
-
-                  _buildQuickStatsSection(),
-                  const SizedBox(height: kDefaultPadding),
-
-                  _buildLearningFocusSection(),
-                  const SizedBox(height: kLargePadding),
-                ],
-              ),
-            ),
-          ],
+      backgroundColor: Colors.grey.shade100,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(kDefaultPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProfileHeader(),
+              const SizedBox(height: 10),
+              _buildStatsRow(),
+              const SizedBox(height: kDefaultPadding),
+              _buildActivityHeatmapCard(),
+              const SizedBox(height: kDefaultPadding),
+              _buildQuickStatsSection(),
+              const SizedBox(height: kDefaultPadding),
+              _buildLearningFocusSection(),
+              const SizedBox(height: kDefaultPadding),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // 🔹 Profile Header
+  // ================= Profile Header =================
   Widget _buildProfileHeader() {
     return SizedBox(
       height: 140,
@@ -98,14 +95,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
           Container(
             height: 220,
             decoration: const BoxDecoration(
-              color: Color(0xFF112D4F),
+              color: kPrimaryColor,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(80),
                 bottomRight: Radius.circular(80),
               ),
             ),
           ),
-
           Positioned(
             top: 15,
             left: kDefaultPadding,
@@ -130,10 +126,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           decoration: BoxDecoration(
                             color: kGreenAccent,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: kBackgroundColor,
-                              width: 2,
-                            ),
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
                         ),
                       ),
@@ -174,7 +167,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             'Addis Abeba, AA',
                             style: TextStyle(fontSize: 13, color: Colors.white),
                           ),
-                          SizedBox(width: kSmallPadding),
                         ],
                       ),
                       SizedBox(height: 4),
@@ -203,7 +195,36 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  // 🔹 Stats card
+  // ================= Stats Row =================
+  Widget _buildStatsRow() {
+    return Row(
+      children: [
+        _buildStatCard(
+          '47',
+          'Sessions',
+          '+12 this month',
+          valueColor: kGreenAccent,
+        ),
+        const SizedBox(width: kSmallPadding),
+        _buildStatCard('28', 'Achievements', '3 new'),
+        const SizedBox(width: kSmallPadding),
+        _buildStatCard(
+          '156',
+          'Hours Practiced',
+          '+8 this week',
+          valueColor: kGreenAccent,
+        ),
+        const SizedBox(width: kSmallPadding),
+        _buildStatCard(
+          '7',
+          'Day Streak',
+          '🔥 Active',
+          valueColor: const Color(0xFFFFA000),
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatCard(
     String value,
     String label,
@@ -219,7 +240,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 2),
             ),
@@ -252,90 +272,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  // 🔹 Section card
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(kDefaultPadding),
-      decoration: BoxDecoration(
-        color: kCardBackgroundColor,
-        borderRadius: BorderRadius.circular(kBorderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: kPrimaryColor, size: 20),
-              const SizedBox(width: kSmallPadding),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: kPrimaryColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: kMediumPadding),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  // 🔹 About section
-  Widget _buildAboutSection() {
-    return _buildSectionCard(
-      title: 'About',
-      icon: Icons.person_outline,
-      children: [
-        const Text(
-          'Passionate about learning English and improving my communication skills. '
-          'Currently focusing on business English and professional writing. '
-          'I enjoy practicing with AI feedback and challenging myself with new vocabulary.',
-          style: TextStyle(fontSize: 14, color: kTextColor, height: 1.4),
-        ),
-        const SizedBox(height: kMediumPadding),
-        _buildInfoRow(Icons.work_outline, 'Marketing Specialist at TechCorp'),
-        _buildInfoRow(Icons.school_outlined, 'Business Administration, NYU'),
-        _buildInfoRow(Icons.language_outlined, 'www.sarahjohnson.com'),
-        _buildInfoRow(Icons.email_outlined, 'sarah.johnson@email.com'),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: kLightTextColor),
-          const SizedBox(width: kSmallPadding),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, color: kTextColor),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 🔹 Quick Stats
+  // ================= Quick Stats =================
   Widget _buildQuickStatsSection() {
     return _buildSectionCard(
       title: 'Quick Stats',
@@ -376,46 +313,44 @@ class _UserProfilePageState extends State<UserProfilePage> {
           const SizedBox(width: kSmallPadding),
           Text(label, style: const TextStyle(fontSize: 14, color: kTextColor)),
           const Spacer(),
-          if (isButton)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: kSmallPadding,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: kPrimaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(kSmallBorderRadius),
-              ),
-              child: Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: kPrimaryColor,
+          isButton
+              ? Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: kSmallPadding,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: kPrimaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: kPrimaryColor,
+                    ),
+                  ),
+                )
+              : Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: kTextColor,
+                  ),
                 ),
-              ),
-            )
-          else
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: kTextColor,
-              ),
-            ),
         ],
       ),
     );
   }
 
-  // 🔹 Learning Focus
+  // ================= Learning Focus =================
   Widget _buildLearningFocusSection() {
     return _buildSectionCard(
       title: 'Learning Focus',
       icon: Icons.lightbulb_outline,
       children: [
-        _buildFocusRatingRow('Business English', 5),
         _buildFocusRatingRow('Grammar', 4),
         _buildFocusRatingRow('Pronunciation', 4),
       ],
@@ -441,5 +376,284 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ],
       ),
     );
+  }
+
+  // ================= Section Card Helper =================
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(kDefaultPadding),
+      margin: const EdgeInsets.only(bottom: kDefaultPadding),
+      decoration: BoxDecoration(
+        color: kCardBackgroundColor,
+        borderRadius: BorderRadius.circular(kBorderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: kPrimaryColor, size: 20),
+              const SizedBox(width: kSmallPadding),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: kPrimaryColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: kMediumPadding),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityHeatmapCard() {
+    final yearData = activityPerYear[selectedYear]!;
+    final allDays = <DateTime, int>{};
+
+    // Flatten yearData into [date -> activity level]
+    for (int month = 0; month < 12; month++) {
+      for (int day = 0; day < yearData[month].length; day++) {
+        final date = DateTime(selectedYear, month + 1, day + 1);
+        if (date.year == selectedYear) {
+          allDays[date] = yearData[month][day];
+        }
+      }
+    }
+
+    final firstDay = DateTime(selectedYear, 1, 1);
+    final lastDay = DateTime(selectedYear, 12, 31);
+
+    // Build week-based structure
+    final weeks = <List<DateTime?>>[];
+    DateTime currentDay = firstDay;
+    List<DateTime?> currentWeek = List.filled(7, null);
+
+    while (currentDay.isBefore(lastDay) ||
+        currentDay.isAtSameMomentAs(lastDay)) {
+      currentWeek[currentDay.weekday % 7] = currentDay;
+      if (currentDay.weekday == DateTime.sunday) {
+        weeks.add(currentWeek);
+        currentWeek = List.filled(7, null);
+      }
+      currentDay = currentDay.add(const Duration(days: 1));
+    }
+    if (currentWeek.any((d) => d != null)) {
+      weeks.add(currentWeek);
+    }
+
+    // Determine which week column should have a month label
+    final monthLabels = List<String?>.filled(weeks.length, null);
+    for (int i = 0; i < weeks.length; i++) {
+      for (var day in weeks[i]) {
+        if (day != null && day.day == 1) {
+          final name = _monthAbbrev(day.month);
+          monthLabels[i] = name; // e.g., "Jan"
+          break;
+        }
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(kDefaultPadding),
+      decoration: BoxDecoration(
+        color: kCardBackgroundColor,
+        borderRadius: BorderRadius.circular(kBorderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Activity Streak - $selectedYear',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: kTextColor,
+                ),
+              ),
+              DropdownButton<int>(
+                value: selectedYear,
+                items: years
+                    .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedYear = value!;
+                  });
+                },
+                underline: Container(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Heatmap with month labels
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Month labels row (2 letters on top row)
+                Row(
+                  children: List.generate(weeks.length, (i) {
+                    final label = monthLabels[i];
+                    return Container(
+                      width: 16,
+                      alignment: Alignment.center,
+                      child: label != null
+                          ? Text(
+                              label.substring(0, 2), // "Ja" from "Jan"
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: kLightTextColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    );
+                  }),
+                ),
+                // Month labels second row (last char)
+                Row(
+                  children: List.generate(weeks.length, (i) {
+                    final label = monthLabels[i];
+                    return Container(
+                      width: 16,
+                      alignment: Alignment.center,
+                      child: label != null
+                          ? Text(
+                              label.substring(
+                                label.length - 1,
+                              ), // "n" from "Jan"
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: kLightTextColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 4),
+
+                // Heatmap grid (with weekday labels on the left)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Weekday labels (Mon, Wed, Fri only)
+                    Column(
+                      children: List.generate(7, (i) {
+                        if (i == DateTime.monday % 7 ||
+                            i == DateTime.wednesday % 7 ||
+                            i == DateTime.friday % 7) {
+                          return Container(
+                            height: 16,
+                            alignment: Alignment.centerRight,
+                            margin: const EdgeInsets.symmetric(vertical: 2),
+                            child: Text(
+                              [
+                                'Mon',
+                                'Tue',
+                                'Wed',
+                                'Thu',
+                                'Fri',
+                                'Sat',
+                                'Sun',
+                              ][i],
+                              style: const TextStyle(
+                                fontSize: 9,
+                                color: kLightTextColor,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox(height: 16);
+                      }),
+                    ),
+                    const SizedBox(width: 4),
+
+                    Row(
+                      children: weeks.map((week) {
+                        return Column(
+                          children: List.generate(7, (i) {
+                            final day = week[i];
+                            final level =
+                                day != null && allDays.containsKey(day)
+                                ? allDays[day]!
+                                : 0;
+                            final color = [
+                              Colors.grey.shade300,
+                              Colors.green.shade100,
+                              Colors.green.shade300,
+                              Colors.green.shade500,
+                              Colors.green.shade700,
+                            ][level];
+                            return Container(
+                              margin: const EdgeInsets.all(2),
+                              width: 14,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: color,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            );
+                          }),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper for month abbreviations
+  String _monthAbbrev(int month) {
+    const names = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return names[month - 1];
   }
 }
