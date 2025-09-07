@@ -28,4 +28,21 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   padding-top: 4rem;
+  margin: 0;
+}
+
+.color-empty {
+  fill: #ebedf0;
+}
+.color-scale-0 {
+  fill: #ebedf0;
+}
+.color-scale-1 {
+  fill: #9be9a8;
+}
+.color-scale-2 {
+  fill: #40c463;
+}
+.color-scale-4 {
+  fill: #216e39;
 }

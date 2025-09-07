@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+
+import Header from "@/components/Header"; 
 import VoiceCircle from "./VoiceCircle";
 import TypingIndicator from "./TypingIndicator";
 import RespondingBars from "./RespondingBars";
@@ -14,29 +16,7 @@ const SILENCE_THRESHOLD = 0.025;
 const SILENCE_DURATION_MS = 1500;
 const CONVERSATION_TIMEOUT_MS = 180000; // 3 minutes
 
-// ------------------ HEADER COMPONENT ------------------
-const Header: React.FC = () => (
-  <header className="w-full bg-white shadow-sm px-8 py-3 flex items-center justify-between">
-    <Image src="/images/logo.png" alt="Mascot" width={130} height={130} />
-    <nav className="flex space-x-6 text-gray-600 font-medium">
-      <a href="#" className="hover:text-blue-500">
-        Mock Interviews
-      </a>
-      <a href="#" className="hover:text-blue-500">
-        Grammar Coach
-      </a>
-      <a href="#" className="hover:text-blue-500">
-        Learn
-      </a>
-      <a href="#" className="hover:text-blue-500">
-        Email Drafting
-      </a>
-      <a href="#" className="hover:text-blue-500">
-        Pronunciation
-      </a>
-    </nav>
-  </header>
-);
+// --- OLD HEADER COMPONENT HAS BEEN REMOVED FROM HERE ---
 
 // ------------------ MAIN PAGE COMPONENT ------------------
 const FreeSpeaking: React.FC = () => {
@@ -57,7 +37,6 @@ const FreeSpeaking: React.FC = () => {
   const monitorMicrophone = () => {
     if (!userAnalyserRef.current) return;
 
-    // Cancel any previous animation frame before starting a new one.
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
@@ -95,7 +74,6 @@ const FreeSpeaking: React.FC = () => {
   };
 
   const beginRecordingTurn = () => {
-    // CRITICAL FIX: Resume the AudioContext in case the browser suspended it.
     if (
       userAudioContextRef.current &&
       userAudioContextRef.current.state === "suspended"
@@ -105,9 +83,8 @@ const FreeSpeaking: React.FC = () => {
 
     if (!mediaRecorderRef.current) return;
 
-    // Only start the recorder if it's not already recording.
     if (mediaRecorderRef.current.state === "inactive") {
-      mediaRecorderRef.current.start(500); // Start sending data in chunks
+      mediaRecorderRef.current.start(500);
     }
 
     setConversationState("recording");
@@ -121,7 +98,6 @@ const FreeSpeaking: React.FC = () => {
     setUserVolume(0);
 
     if (mediaRecorderRef.current?.state === "recording") {
-      // Just stop the recorder. The 'onstop' event will handle the rest.
       mediaRecorderRef.current.stop();
     }
   };
@@ -167,7 +143,6 @@ const FreeSpeaking: React.FC = () => {
         }
       };
 
-      // CRITICAL FIX: Use the 'onstop' event for safer state management.
       mediaRecorderRef.current.onstop = () => {
         if (socketRef.current?.readyState === WebSocket.OPEN) {
           socketRef.current.send(JSON.stringify({ type: "end_of_speech" }));
@@ -201,7 +176,6 @@ const FreeSpeaking: React.FC = () => {
           setConversationState("responding");
           newAiAudio.play();
           newAiAudio.onended = () => {
-            // Check if the session is still active before starting the next turn
             if (conversationTimerRef.current) {
               beginRecordingTurn();
             }
@@ -255,7 +229,8 @@ const FreeSpeaking: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-6">
+    // --- Added pt-20 to account for the fixed header ---
+    <div className="flex flex-col items-center p-6 pt-20">
       <Image
         src="/images/mascot_img.png"
         alt="Mascot"

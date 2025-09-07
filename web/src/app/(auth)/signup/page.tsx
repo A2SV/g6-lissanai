@@ -107,13 +107,13 @@ export default function SignUpPage() {
               </label>
               <div className="relative mt-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiUser className="w-5 h-5 text-gray-400" />
+                  <FiUser className="w-5 h-5 text-gray-600" />
                 </div>
                 <input
                   type="text"
                   {...register("fullName")} 
                   placeholder="Your Full Name"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 text-sm text-gray-600 focus:border-green-500"
                 />
               </div>
               {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>}
@@ -126,13 +126,13 @@ export default function SignUpPage() {
               </label>
               <div className="relative mt-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiMail className="w-5 h-5 text-gray-400" />
+                  <FiMail className="w-5 h-5 text-gray-600" />
                 </div>
                 <input
                   type="email"
                   {...register("email")}
                   placeholder="your.email@example.com"
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                  className="w-full pl-10 pr-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
                 />
               </div>
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
@@ -145,13 +145,13 @@ export default function SignUpPage() {
               </label>
               <div className="relative mt-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiLock className="w-5 h-5 text-gray-400" />
+                  <FiLock className="w-5 h-5 text-gray-600" />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
                   {...register("password")} 
                   placeholder="Create a strong password"
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                  className="w-full pl-10 pr-10 py-2 border text-sm text-gray-600 border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
                 />
                 <button
                   type="button"
@@ -171,13 +171,13 @@ export default function SignUpPage() {
               </label>
               <div className="relative mt-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FiLock className="w-5 h-5 text-gray-400" />
+                  <FiLock className="w-5 h-5 text-gray-600" />
                 </div>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   {...register("confirmPassword")} 
                   placeholder="Confirm your password"
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                  className="w-full pl-10 pr-10 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
                 />
                 <button
                   type="button"

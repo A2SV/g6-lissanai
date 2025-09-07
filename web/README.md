@@ -23,6 +23,21 @@ LissanAI is a web application designed to help Ethiopians improve their professi
 - Optimized performance & caching  
 
 ### 🖥️ Core Pages 
+- 🧑‍💼 Mock Interviews
+    Simulate real job interviews (e.g., “Software Developer Interview”) and receive real-time AI feedback on your answers.
+
+- ✍️ Grammar & Clarity Feedback
+    Input text or speech and get instant corrections, style improvements, and clarity scoring tailored to professional contexts.
+
+- 📧 Email Drafting
+    Write in Amharic or English → AI generates polished, professional emails using templates for job applications and business communication.
+
+- 🎤 Pronunciation Coach
+    Practice speaking English; AI analyzes your speech, highlights issues, and provides gentle, non-judgmental guidance to improve pronunciation.
+
+- 📚 Learning Page
+    Access structured English lessons and quizzes to practice grammar, vocabulary, and tenses.
+    Track your progress and achievements over time.
 
 ### 🧩 Component Architecture  
 - Reusable UI components  
@@ -95,6 +110,30 @@ npm run cypress:open
 --- 
 
 ## 📸 Screenshots
+
+### Landing Page → Hero section with mascot animation.
+![Alt text](./public/images/landingpage.png)
+
+### Features Section → 
+![Alt text](./public/images/features.png)
+### Mock Interview Page → Example of Q&A with AI feedback.
+![Alt text](./public/images/mockinterviewpage.png)
+### Grammar & Clarity Page → A sentence being corrected in real-time.
+![Alt text](./public/images/grammarpage.png)
+
+### Email Drafting Page → Amharic → English email conversion with AI template.
+![Alt text](./public/images/emaildraftingpage.png)
+
+### Pronunciation Coach → UI showing speech analysis / feedback.
+![Alt text](./public/images/pronunciationpage.png)
+
+### Learning Page → English lessons with quiz and progress tracker.
+![Alt text](./public/images/learn.png)
+
+### Dashboard page→ Personalized user progress overview.
+![Alt text](./public/images/dashboardpage.png)
+### Profile page→ Personalized user profile.
+![Alt text](./public/images/profilepage.png)
 
 ---
 

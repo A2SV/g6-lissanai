@@ -1,6 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 const progressData = [
   { label: "Speaking Confidence", value: 53 },
@@ -55,6 +58,62 @@ const ProgressBar = ({ value }: ProgressBarProps) => (
 );
 
 export default function Dashboard() {
+  const { data: session } = useSession();
+  const [streak, setStreak] = useState(0);
+
+  useEffect(() => {
+    const fetchStreak = async () => {
+      console.log("Session:", session);
+      console.log("Access token:", session?.accessToken);
+      console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+
+      if (!session?.accessToken) {
+        console.error("No access token available");
+        return;
+      }
+
+      try {
+        console.log(
+          "Fetching streak from:",
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/streak/calendar`
+        );
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/streak/info`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.accessToken}`,
+            },
+          }
+        );
+
+        console.log("Response status:", response.status);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(
+            `Failed to fetch streak: ${response.status} ${response.statusText}`,
+            errorText
+          );
+          throw new Error(`Failed to fetch streak: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Streak data received:", data);
+        setStreak(data.current_streak);
+      } catch (error) {
+        console.error("Error fetching streak:", error);
+        // Fallback: Keep default streak
+      }
+    };
+
+    if (session) {
+      fetchStreak();
+    } else {
+      console.log("No session available, skipping streak fetch");
+    }
+  }, [session]);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -75,18 +134,19 @@ export default function Dashboard() {
                 <span>▶ </span>
                 Continue Learning
                 <span className="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs ml-2">
-                  1 day streak 🔥
+                  {streak} day{streak !== 1 ? "s" : ""} streak{" "}
+                  {streak > 0 ? "🔥" : "💨"}
                 </span>
               </button>
             </Link>
           </div>
           <div className="flex flex-col items-center w-full sm:w-auto">
-           <div className="relative h-64 w-64 md:h-80 md:w-80 mx-auto flex items-center justify-center">
-                <img
-                    src="/videos/dashboard.gif" // Path to your GIF file
-                    alt="LissanAI Mascot Animation" // Accessible alt text for the image
-                    className="absolute inset-0 w-full h-full object-contain" // Keep consistent styling
-                />
+            <div className="relative h-64 w-64 md:h-80 md:w-80 mx-auto flex items-center justify-center">
+              <img
+                src="/videos/dashboard.gif"
+                alt="LissanAI Mascot Animation"
+                className="absolute inset-0 w-full h-full object-contain"
+              />
             </div>
           </div>
         </div>

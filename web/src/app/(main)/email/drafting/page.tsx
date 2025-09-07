@@ -268,7 +268,7 @@ export default function EmailDraftingPage() {
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               placeholder="e.g., Ask my manager for a follow-up meeting about the Q3 report next Tuesday."
-              className="w-full h-52 p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 resize-none"
+              className="w-full h-52 p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 resize-none text-sm text-gray-600"
             />
             <div className="flex items-center justify-between mt-4">
               <button

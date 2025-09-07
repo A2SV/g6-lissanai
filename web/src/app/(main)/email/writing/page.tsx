@@ -89,7 +89,7 @@ function WritingForm() {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Enter your text here or generate it from the previous page..."
-          className="w-full h-48 p-3 bg-gray-50 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="w-full h-48 p-3 bg-gray-50 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm text-gray-600"
         />
 
         <div className="flex space-x-3 mt-4">

@@ -4,7 +4,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-// Define a type for the feedback structure based on your API docs
+// --- Import the shared Header component ---
+import Header from "@/components/Header"; 
+
 // --- TYPE DEFINITIONS ---
 interface Feedback {
   feedback_points: {
@@ -40,7 +42,6 @@ const InterviewLoader: React.FC = () => (
 );
 
 // --- NEW: REUSABLE ANIMATED LINE LOADER ---
-// This component can be used anywhere a small loading indicator is needed.
 const LineLoader: React.FC = () => (
   <>
     <style jsx>{`
@@ -59,40 +60,14 @@ const LineLoader: React.FC = () => (
     <div className="w-1/3 h-full bg-blue-500 rounded-full animate-loading-bar"></div>
   </>
 );
-// ------------------ HEADER ------------------
-const Header: React.FC = () => {
-  return (
-    <header className="w-full bg-white shadow-sm px-8 py-3 flex items-center justify-between">
-      <Image src="/images/logo.png" alt="Mascot" width={130} height={130} />
-      <nav className="flex space-x-6 text-gray-600 font-medium">
-        <a href="#" className="hover:text-blue-500">
-          Mock Interviews
-        </a>
-        <a href="#" className="hover:text-blue-500">
-          Grammar Coach
-        </a>
-        <a href="#" className="hover:text-blue-500">
-          Learn
-        </a>
-        <a href="#" className="hover:text-blue-500">
-          Email Drafting
-        </a>
-        <a href="#" className="hover:text-blue-500">
-          Pronunciation
-        </a>
-      </nav>
-    </header>
-  );
-};
+
+// --- OLD HEADER COMPONENT HAS BEEN REMOVED FROM HERE ---
 
 // --- NEW: INTERVIEW SUMMARY COMPONENT ---
-// --- CORRECTED: INTERVIEW SUMMARY COMPONENT ---
 const InterviewSummaryCard: React.FC<{
   summary: InterviewSummary;
   onRestart: () => void;
 }> = ({ summary, onRestart }) => {
-  // We use the Nullish Coalescing Operator (??) to provide a fallback empty array.
-  // This ensures that if the API sends `null`, we use `[]` instead, preventing the crash.
   const strengths = summary.strengths ?? [];
   const weaknesses = summary.weaknesses ?? [];
 
@@ -172,7 +147,6 @@ const MockInterview: React.FC = () => {
     "idle" | "recording" | "completed"
   >("idle");
 
-  // UPDATED: Added 'completed' state
   const [interviewState, setInterviewState] = useState<
     "loading" | "ready" | "completed" | "error"
   >("loading");
@@ -187,7 +161,7 @@ const MockInterview: React.FC = () => {
 
   const fetchNextQuestion = async (sid: string) => {
     if (!session?.accessToken) return;
-    setIsNewQuestionLoading(true); // Start loading animation
+    setIsNewQuestionLoading(true);
     try {
       const res = await fetch(
         `${base}/interview/question?session_id=${encodeURIComponent(sid)}`,
@@ -207,7 +181,7 @@ const MockInterview: React.FC = () => {
       console.error("Fetch question error:", error);
       setQuestion("Error: Could not load the next question.");
     } finally {
-      setIsNewQuestionLoading(false); // Stop loading animation
+      setIsNewQuestionLoading(false);
     }
   };
 
@@ -232,7 +206,6 @@ const MockInterview: React.FC = () => {
     }
   };
 
-  // NEW: Function to end the interview and fetch the summary
   const completeInterview = async () => {
     if (!session?.accessToken || !sessionId) return;
     try {
@@ -246,10 +219,9 @@ const MockInterview: React.FC = () => {
       if (!res.ok) throw new Error("Failed to fetch summary");
       const summaryData: InterviewSummary = await res.json();
       setInterviewSummary(summaryData);
-      setInterviewState("completed"); // Transition to the summary view
+      setInterviewState("completed");
     } catch (error) {
       console.error("Failed to end interview:", error);
-      // Fallback in case the summary API fails
       alert(
         "Interview finished, but we couldn't load your summary. Please try again later."
       );
@@ -268,7 +240,6 @@ const MockInterview: React.FC = () => {
       setRecordingStage("idle");
       if (sessionId) fetchNextQuestion(sessionId);
     } else {
-      // Instead of alert, call the function to get the summary
       completeInterview();
     }
   };
@@ -310,7 +281,7 @@ const MockInterview: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center p-6">
+    <div className="flex flex-col items-center p-6 pt-20"> {/* Added pt-20 for spacing below fixed header */}
       <Image
         src="/images/mascot_img.png"
         alt="Mascot"
@@ -441,11 +412,9 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ step, total }) => (
 );
 
 // ------------------ QUESTION CARD ------------------
-
 interface QuestionCardProps {
   question: string;
   tip: string;
-  // This prop is for the loading animation, let's keep it for consistency
   isLoading: boolean;
 }
 
@@ -456,42 +425,30 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Function to handle the text-to-speech functionality
   const handleSpeak = () => {
-    // Check if the Speech Synthesis API is supported by the browser
     if (!("speechSynthesis" in window)) {
       alert("Sorry, your browser doesn't support text-to-speech.");
       return;
     }
-
-    // If speech is currently happening, cancel it. This makes the button a toggle.
     if (speechSynthesis.speaking) {
       speechSynthesis.cancel();
-      setIsSpeaking(false); // Manually update state as onend doesn't fire for cancel
+      setIsSpeaking(false);
       return;
     }
-
-    // Create a new speech utterance with the question text
     const utterance = new SpeechSynthesisUtterance(question);
-
-    // Set listeners to update the UI state
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
-
-    // Speak the text
     window.speechSynthesis.speak(utterance);
   };
 
-  // This effect ensures that if the component unmounts (e.g., user clicks "Next Question"),
-  // any ongoing speech is stopped.
   useEffect(() => {
     return () => {
       if (speechSynthesis.speaking) {
         speechSynthesis.cancel();
       }
     };
-  }, []); // The empty array ensures this only runs on mount and unmount
+  }, []);
 
   return (
     <div className="bg-white shadow-md rounded-2xl p-6 mt-6 w-full max-w-5xl mx-auto ">
@@ -508,20 +465,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           </span>
         </div>
 
-        {/* --- UPDATED BUTTON --- */}
         <button
           onClick={handleSpeak}
           className="flex items-center px-4 py-2 bg-blue-50 text-blue-500 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          // Disable the button if loading or if there's no valid question
           disabled={isLoading || !question || question.startsWith("Error:")}
         >
-          {/* The speaker icon and text now change based on the 'isSpeaking' state */}
           <span className="mr-2 text-lg">{isSpeaking ? "⏹️" : "🔊"}</span>
           {isSpeaking ? "Stop" : "Listen"}
         </button>
       </div>
 
-      {/* This div ensures the card height doesn't change during loading */}
       <div className="min-h-[50px] flex flex-col justify-center">
         {isLoading ? (
           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -561,30 +514,26 @@ const RecordSection: React.FC<RecordSectionProps> = ({
 }) => {
   const [transcript, setTranscript] = useState<string>("");
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // For feedback loading
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const mediaRecorderRef = reactUseRef<MediaRecorder | null>(null);
   const chunks = reactUseRef<Blob[]>([]);
   const streamRef = reactUseRef<MediaStream | null>(null);
 
-  // This function is now triggered by the "Get AI Feedback" button
   const handleGetFeedback = async () => {
     if (!transcript?.trim() || !accessToken || !sessionId) {
       console.error("Cannot get feedback: Missing transcript or session info.");
       return;
     }
-
     setIsSubmitting(true);
-    setFeedback(null); // Clear old feedback
-
+    setFeedback(null);
     const base = process.env.NEXT_PUBLIC_API_BASE_URL;
     if (!base) {
       console.error("Missing NEXT_PUBLIC_API_BASE_URL");
       setIsSubmitting(false);
       return;
     }
-
     try {
       const res = await fetch(`${base}/interview/answer`, {
         method: "POST",
@@ -595,12 +544,10 @@ const RecordSection: React.FC<RecordSectionProps> = ({
         },
         body: JSON.stringify({ answer: transcript, session_id: sessionId }),
       });
-
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to submit answer");
       }
-
       const feedbackData: Feedback = await res.json();
       setFeedback(feedbackData);
     } catch (e: unknown) {
@@ -616,29 +563,22 @@ const RecordSection: React.FC<RecordSectionProps> = ({
     }
   };
 
-  // Send audio to backend for transcription
   const transcribeAudio = async (audioBlob: Blob) => {
     const formData = new FormData();
     formData.append("file", audioBlob, "recording.webm");
-
     try {
       setIsTranscribing(true);
       const response = await fetch("/api/interview", {
         method: "POST",
         body: formData,
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to transcribe audio");
       }
-
       const data = await response.json();
       const text = data.text || "⚠️ Could not transcribe. Please try again.";
       setTranscript(text);
-
-      // --- CHANGE ---
-      // The feedback call is no longer automatic. It waits for the user to click the button.
     } catch (error: unknown) {
       console.error("Transcription error:", error);
       setTranscript("⚠️ Error transcribing audio. Please try again.");
@@ -647,16 +587,11 @@ const RecordSection: React.FC<RecordSectionProps> = ({
     }
   };
 
-  // Start Recording (clears old feedback and transcript)
   const startRecording = async () => {
     setFeedback(null);
     setTranscript("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          /* ... */
-        },
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: "audio/webm;codecs=opus",
@@ -670,10 +605,7 @@ const RecordSection: React.FC<RecordSectionProps> = ({
         const blob = new Blob(chunks.current, { type: "audio/webm" });
         chunks.current = [];
         transcribeAudio(blob);
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach((track) => track.stop());
-          streamRef.current = null;
-        }
+        streamRef.current?.getTracks().forEach((track) => track.stop());
       };
       mediaRecorder.start();
       setRecordingStage("recording");
@@ -683,7 +615,6 @@ const RecordSection: React.FC<RecordSectionProps> = ({
     }
   };
 
-  // Stop Recording
   const stopRecording = () => {
     if (
       mediaRecorderRef.current &&
@@ -694,20 +625,15 @@ const RecordSection: React.FC<RecordSectionProps> = ({
     }
   };
 
-  // Reset to Idle
   const resetRecording = () => {
     setRecordingStage("idle");
     setTranscript("");
     setFeedback(null);
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
+    streamRef.current?.getTracks().forEach((track) => track.stop());
   };
 
   return (
     <>
-      {/* Idle Stage */}
       {recordingStage === "idle" && (
         <div
           className="flex flex-col items-center mt-10 rounded-2xl p-8 w-full max-w-5xl"
@@ -730,7 +656,6 @@ const RecordSection: React.FC<RecordSectionProps> = ({
         </div>
       )}
 
-      {/* Recording Stage */}
       {recordingStage === "recording" && (
         <div
           className="flex flex-col items-center mt-10 rounded-2xl p-8 w-full max-w-5xl"
@@ -753,7 +678,6 @@ const RecordSection: React.FC<RecordSectionProps> = ({
         </div>
       )}
 
-      {/* Completed Stage */}
       {recordingStage === "completed" && (
         <div
           className="flex flex-col items-center mt-10 rounded-2xl p-8 w-full max-w-5xl"
@@ -774,7 +698,6 @@ const RecordSection: React.FC<RecordSectionProps> = ({
             )}
           </div>
 
-          {/* Feedback Display Section */}
           {feedback && (
             <div className="mt-6 w-full bg-blue-50 border border-blue-200 rounded-xl p-6 shadow">
               <h3 className="text-blue-800 font-semibold mb-2">
@@ -807,7 +730,6 @@ const RecordSection: React.FC<RecordSectionProps> = ({
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="flex items-center justify-center mt-6 space-x-4">
             <button
               className="px-6 py-2 rounded-xl bg-purple-100 text-purple-700 font-medium hover:bg-purple-200 transition"
@@ -818,7 +740,6 @@ const RecordSection: React.FC<RecordSectionProps> = ({
             <button
               className="px-6 py-2 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 transition disabled:bg-gray-400"
               onClick={handleGetFeedback}
-              // Disable button while transcribing, submitting, or if transcript is invalid
               disabled={
                 isTranscribing || isSubmitting || transcript.startsWith("⚠️")
               }

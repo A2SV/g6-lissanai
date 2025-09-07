@@ -7,6 +7,11 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   console.log('--- Middleware running for path:', pathname, '---');
 
+   if (pathname === '/interview') {
+    console.log('Redirecting /interview to /interview/mock');
+    return NextResponse.redirect(new URL('/interview/mock', req.url));
+  }
+
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) {
     console.error('CRITICAL: NEXTAUTH_SECRET is not set in the environment!');
