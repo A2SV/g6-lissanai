@@ -41,7 +41,8 @@ class GrammarRemoteDataSourcesImpl implements GrammarRemoteDataSources {
       debugPrint('Parsed result: $result');
       return result;
     } else {
-      throw const ServerException(message: 'Failed to check grammar');
+      var status = response.statusCode;
+      throw ServerException(message: 'Failed to check grammar $status');
     }
   }
 }

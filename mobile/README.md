@@ -1,16 +1,29 @@
-# lissan_ai
+# 📱 Lissan AI  
 
-A new Flutter project.
+Lissan AI is a Flutter-based mobile application designed to [briefly describe purpose — e.g., “help users improve writing through AI-powered grammar checking and text enhancement”].  
+This project is built using **Flutter** to deliver a smooth, cross-platform experience on both Android and iOS.  
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🚀 Features  
+- AI-powered text analysis and grammar checking  
+- Clean and intuitive user interface  
+- Cross-platform (Android & iOS) support  
+- [Add more features as your project grows]  
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🛠️ Tech Stack  
+- **Flutter** (Dart)  
+- **State Management**: [e.g., Riverpod / Bloc / Provider]  
+- **Backend / API**: [e.g., Firebase / REST API / GraphQL]  
+- **Version Control**: Git & GitHub  
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 📂 Project Setup  
+
+1. Clone the repository:  
+   ```bash
+   git clone https://github.com/yaftes/lissan-ai-mobile
+   cd lissan-ai-mobile

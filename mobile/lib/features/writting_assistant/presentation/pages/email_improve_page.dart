@@ -16,7 +16,6 @@ class EmailImprovePage extends StatefulWidget {
 
 class _EmailImprovePageState extends State<EmailImprovePage> {
   final TextEditingController _emailController = TextEditingController();
-  int _charCount = 0;
   String selectedTone = 'Formal';
   final tones = const ['Formal', 'Polite', 'Friendly'];
   String selectedType = 'Job Application';
