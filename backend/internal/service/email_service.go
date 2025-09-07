@@ -27,7 +27,7 @@ func NewEmailService() EmailService {
 		smtpUsername: os.Getenv("SMTP_USERNAME"),
 		smtpPassword: os.Getenv("SMTP_PASSWORD"),
 		fromEmail:    getEnvOrDefault("FROM_EMAIL", os.Getenv("SMTP_USERNAME")),
-		frontendURL:  getEnvOrDefault("FRONTEND_URL", "http://localhost:3000"),
+		frontendURL:  getEnvOrDefault("FRONTEND_URL", "https://lissanai.onrender.com"),
 	}
 }
 
