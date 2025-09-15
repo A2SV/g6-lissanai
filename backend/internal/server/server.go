@@ -92,6 +92,13 @@ func New() *gin.Engine {
 	// --- Middleware ---
 	authMiddleware := middleware.AuthMiddleware(jwtService)
 
+	// This is a public endpoint used by services like UptimeRobot to keep the service alive.
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "UP",
+		})
+	})
+	
 	// --- Routes ---
 	apiV1 := router.Group("/api/v1")
 	{
