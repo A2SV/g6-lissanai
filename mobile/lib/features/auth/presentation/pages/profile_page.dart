@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-
-const Color kPrimaryColor = Color(0xFF112D4F);
-const Color kCardBackgroundColor = Color(0xFFFFFFFF);
-const Color kTextColor = Color(0xFF333333);
-const Color kLightTextColor = Color(0xFF6B7280);
-const Color kGreenAccent = Color(0xFF00C853);
-
-const double kDefaultPadding = 16.0;
-const double kSmallPadding = 8.0;
-const double kMediumPadding = 12.0;
-const double kBorderRadius = 12.0;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lissan_ai/features/auth/domain/entities/user.dart';
+import 'package:lissan_ai/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:lissan_ai/features/auth/presentation/bloc/auth_event.dart';
+import 'package:lissan_ai/features/auth/presentation/bloc/auth_state.dart';
+import 'package:lissan_ai/features/auth/data/models/streak_calendar_model.dart';
+import 'package:lissan_ai/features/auth/data/models/streak_info_model.dart';
+import 'package:lissan_ai/features/auth/data/models/week_model.dart';
+import 'package:lissan_ai/features/auth/data/models/day_model.dart';
+import 'package:lissan_ai/features/auth/presentation/bloc/streak_bloc.dart';
+import 'package:lissan_ai/features/auth/presentation/bloc/streak_event.dart';
+import 'package:lissan_ai/features/auth/presentation/bloc/streak_state.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -26,36 +27,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
     DateTime.now().year,
   ];
 
-  final List<String> months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
-  // Dummy activity data: [year][month][day]
-  final Map<int, List<List<int>>> activityPerYear = {};
+  StreakInfoModel? streakInfo;
+  StreakCalendarModel? calendar;
 
   @override
   void initState() {
     super.initState();
-    for (var year in years) {
-      activityPerYear[year] = List.generate(
-        12,
-        (month) => List.generate(
-          DateTime(year, month + 1, 0).day, // days in month
-          (day) => (day * 3 + month) % 5,
-        ),
-      );
-    }
+    context.read<AuthBloc>().add(GetUserEvent());
+    final bloc = context.read<StreakBloc>();
+    bloc.add(GetStreakInfoEvent());
+    bloc.add(GetActivityCalendarEvent());
   }
 
   @override
@@ -63,30 +44,63 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(kDefaultPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildProfileHeader(),
-              const SizedBox(height: 10),
-              _buildStatsRow(),
-              const SizedBox(height: kDefaultPadding),
-              _buildActivityHeatmapCard(),
-              const SizedBox(height: kDefaultPadding),
-              _buildQuickStatsSection(),
-              const SizedBox(height: kDefaultPadding),
-              _buildLearningFocusSection(),
-              const SizedBox(height: kDefaultPadding),
-            ],
-          ),
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            if (state is AuthLoadingState) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is AuthErrorState) {
+              return Center(child: Text(state.message));
+            } else if (state is UserInfoState) {
+              final user = state.user;
+              return _buildProfileContent(user);
+            }
+            return const Center(child: Text('No user data'));
+          },
         ),
       ),
     );
   }
 
-  // ================= Profile Header =================
-  Widget _buildProfileHeader() {
+  Widget _buildProfileContent(User user) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildProfileHeader(user),
+          const SizedBox(height: 16),
+          _buildStatsRow(),
+          const SizedBox(height: 16),
+          MultiBlocListener(
+            listeners: [
+              BlocListener<StreakBloc, StreakState>(
+                listener: (context, state) {
+                  if (state is StreakInfoLoaded) {
+                    setState(
+                      () => streakInfo = state.streakInfo as StreakInfoModel,
+                    );
+                  } else if (state is ActivityCalendarLoaded) {
+                    setState(
+                      () => calendar = state.calendar as StreakCalendarModel,
+                    );
+                  }
+                },
+              ),
+            ],
+            child: Column(
+              children: [
+                if (streakInfo != null) _buildStreakInfo(streakInfo!),
+                const SizedBox(height: 16),
+                if (calendar != null) _buildHorizontalHeatmap(calendar!),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(User user) {
     return SizedBox(
       height: 140,
       child: Stack(
@@ -95,7 +109,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           Container(
             height: 220,
             decoration: const BoxDecoration(
-              color: kPrimaryColor,
+              color: Color(0xFF112D4F),
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(80),
                 bottomRight: Radius.circular(80),
@@ -104,8 +118,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),
           Positioned(
             top: 15,
-            left: kDefaultPadding,
-            right: kDefaultPadding,
+            left: 16,
+            right: 16,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -124,7 +138,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           width: 16,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: kGreenAccent,
+                            color: const Color(0xFF00C853),
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
@@ -133,56 +147,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     ],
                   ),
                 ),
-                const SizedBox(width: kMediumPadding),
-                const Expanded(
+                const SizedBox(width: 12),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Hana Johnson',
-                        style: TextStyle(
+                        user.name ?? '',
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
                       Text(
-                        'English Language Learner',
-                        style: TextStyle(
+                        user.email ?? '',
+                        style: const TextStyle(
                           fontSize: 15,
                           color: Colors.white,
                           fontWeight: FontWeight.w500,
                         ),
-                      ),
-                      SizedBox(height: kSmallPadding / 2),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            'Addis Abeba, AA',
-                            style: TextStyle(fontSize: 13, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.school_outlined,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            'Intermediate Level',
-                            style: TextStyle(fontSize: 13, color: Colors.white),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -195,32 +179,24 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  // ================= Stats Row =================
   Widget _buildStatsRow() {
     return Row(
       children: [
         _buildStatCard(
-          '47',
-          'Sessions',
-          '+12 this month',
-          valueColor: kGreenAccent,
+          '7',
+          'Day Streak',
+          streakInfo != null ? '${streakInfo!.current_streak ?? 0} days' : '-',
+          valueColor: const Color(0xFFFFA000),
         ),
-        const SizedBox(width: kSmallPadding),
-        _buildStatCard('28', 'Achievements', '3 new'),
-        const SizedBox(width: kSmallPadding),
+        const SizedBox(width: 8),
         _buildStatCard(
           '156',
           'Hours Practiced',
           '+8 this week',
-          valueColor: kGreenAccent,
+          valueColor: const Color(0xFF00C853),
         ),
-        const SizedBox(width: kSmallPadding),
-        _buildStatCard(
-          '7',
-          'Day Streak',
-          '🔥 Active',
-          valueColor: const Color(0xFFFFA000),
-        ),
+        const SizedBox(width: 8),
+        _buildStatCard('28', 'Achievements', '3 new'),
       ],
     );
   }
@@ -229,14 +205,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
     String value,
     String label,
     String detail, {
-    Color valueColor = kTextColor,
+    Color valueColor = const Color(0xFF333333),
   }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(kMediumPadding),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: kCardBackgroundColor,
-          borderRadius: BorderRadius.circular(kBorderRadius),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.1),
@@ -261,7 +237,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: kLightTextColor,
+                color: Color(0xFF6B7280),
               ),
             ),
             const SizedBox(height: 2),
@@ -272,388 +248,131 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  // ================= Quick Stats =================
-  Widget _buildQuickStatsSection() {
-    return _buildSectionCard(
-      title: 'Quick Stats',
-      icon: Icons.bar_chart_outlined,
-      children: [
-        _buildStatDetailRow(
-          Icons.timer_outlined,
-          'Total Study Time',
-          '156 hours',
-        ),
-        _buildStatDetailRow(
-          Icons.military_tech_outlined,
-          'Current Level',
-          'Intermediate',
-          isButton: true,
-        ),
-        _buildStatDetailRow(
-          Icons.emoji_events_outlined,
-          'Best Streak',
-          '12 days',
-        ),
-        _buildStatDetailRow(Icons.leaderboard_outlined, 'Rank', '#87 globally'),
-      ],
-    );
+  Widget _buildStreakInfo(StreakInfoModel info) {
+    return _buildStatsRow();
   }
 
-  Widget _buildStatDetailRow(
-    IconData icon,
-    String label,
-    String value, {
-    bool isButton = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
+  Widget _buildHorizontalHeatmap(StreakCalendarModel calendar) {
+    if (calendar.weeks == null || calendar.weeks!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final weeks = calendar.weeks!
+        .map(
+          (week) =>
+              (week as WeekModel).days!.map((e) => e as DayModel).toList(),
+        )
+        .toList();
+
+    final monthLabels = <String>[];
+    for (var week in weeks) {
+      if (week.isNotEmpty) {
+        final month = DateTime.parse(week[0].date!).month;
+        final monthName = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ][month - 1];
+        monthLabels.add(monthName);
+      } else {
+        monthLabels.add('');
+      }
+    }
+
+    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: kLightTextColor),
-          const SizedBox(width: kSmallPadding),
-          Text(label, style: const TextStyle(fontSize: 14, color: kTextColor)),
-          const Spacer(),
-          isButton
-              ? Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: kSmallPadding,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: kPrimaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+          Row(
+            children: [
+              const SizedBox(width: 40),
+              ...monthLabels.map(
+                (month) => SizedBox(
+                  width: 16 * 7,
                   child: Text(
-                    value,
+                    month,
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: kPrimaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                )
-              : Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: kTextColor,
-                  ),
-                ),
-        ],
-      ),
-    );
-  }
-
-  // ================= Learning Focus =================
-  Widget _buildLearningFocusSection() {
-    return _buildSectionCard(
-      title: 'Learning Focus',
-      icon: Icons.lightbulb_outline,
-      children: [
-        _buildFocusRatingRow('Grammar', 4),
-        _buildFocusRatingRow('Pronunciation', 4),
-      ],
-    );
-  }
-
-  Widget _buildFocusRatingRow(String skill, int rating) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
-        children: [
-          Text(skill, style: const TextStyle(fontSize: 14, color: kTextColor)),
-          const Spacer(),
-          Row(
-            children: List.generate(5, (index) {
-              return Icon(
-                index < rating ? Icons.star_rounded : Icons.star_border_rounded,
-                color: const Color(0xFFFFA000),
-                size: 18,
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ================= Section Card Helper =================
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(kDefaultPadding),
-      margin: const EdgeInsets.only(bottom: kDefaultPadding),
-      decoration: BoxDecoration(
-        color: kCardBackgroundColor,
-        borderRadius: BorderRadius.circular(kBorderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: kPrimaryColor, size: 20),
-              const SizedBox(width: kSmallPadding),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: kPrimaryColor,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: kMediumPadding),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityHeatmapCard() {
-    final yearData = activityPerYear[selectedYear]!;
-    final allDays = <DateTime, int>{};
-
-    // Flatten yearData into [date -> activity level]
-    for (int month = 0; month < 12; month++) {
-      for (int day = 0; day < yearData[month].length; day++) {
-        final date = DateTime(selectedYear, month + 1, day + 1);
-        if (date.year == selectedYear) {
-          allDays[date] = yearData[month][day];
-        }
-      }
-    }
-
-    final firstDay = DateTime(selectedYear, 1, 1);
-    final lastDay = DateTime(selectedYear, 12, 31);
-
-    // Build week-based structure
-    final weeks = <List<DateTime?>>[];
-    DateTime currentDay = firstDay;
-    List<DateTime?> currentWeek = List.filled(7, null);
-
-    while (currentDay.isBefore(lastDay) ||
-        currentDay.isAtSameMomentAs(lastDay)) {
-      currentWeek[currentDay.weekday % 7] = currentDay;
-      if (currentDay.weekday == DateTime.sunday) {
-        weeks.add(currentWeek);
-        currentWeek = List.filled(7, null);
-      }
-      currentDay = currentDay.add(const Duration(days: 1));
-    }
-    if (currentWeek.any((d) => d != null)) {
-      weeks.add(currentWeek);
-    }
-
-    // Determine which week column should have a month label
-    final monthLabels = List<String?>.filled(weeks.length, null);
-    for (int i = 0; i < weeks.length; i++) {
-      for (var day in weeks[i]) {
-        if (day != null && day.day == 1) {
-          final name = _monthAbbrev(day.month);
-          monthLabels[i] = name; // e.g., "Jan"
-          break;
-        }
-      }
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(kDefaultPadding),
-      decoration: BoxDecoration(
-        color: kCardBackgroundColor,
-        borderRadius: BorderRadius.circular(kBorderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
+          const SizedBox(height: 8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Activity Streak - $selectedYear',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: kTextColor,
-                ),
-              ),
-              DropdownButton<int>(
-                value: selectedYear,
-                items: years
-                    .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
+              Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: weekdays
+                    .map(
+                      (day) => SizedBox(
+                        height: 16,
+                        child: Text(
+                          day[0],
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    )
                     .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedYear = value!;
-                  });
-                },
-                underline: Container(),
+              ),
+              const SizedBox(width: 4),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: weeks.map((week) {
+                    return Column(
+                      children: List.generate(7, (i) {
+                        final day = i < week.length ? week[i] : null;
+                        final color = day != null && (day.has_activity ?? false)
+                            ? Colors.green.shade500
+                            : Colors.grey.shade300;
+                        return Container(
+                          width: 14,
+                          height: 14,
+                          margin: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        );
+                      }),
+                    );
+                  }).toList(),
+                ),
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-
-          // Heatmap with month labels
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Month labels row (2 letters on top row)
-                Row(
-                  children: List.generate(weeks.length, (i) {
-                    final label = monthLabels[i];
-                    return Container(
-                      width: 16,
-                      alignment: Alignment.center,
-                      child: label != null
-                          ? Text(
-                              label.substring(0, 2), // "Ja" from "Jan"
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: kLightTextColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    );
-                  }),
-                ),
-                // Month labels second row (last char)
-                Row(
-                  children: List.generate(weeks.length, (i) {
-                    final label = monthLabels[i];
-                    return Container(
-                      width: 16,
-                      alignment: Alignment.center,
-                      child: label != null
-                          ? Text(
-                              label.substring(
-                                label.length - 1,
-                              ), // "n" from "Jan"
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: kLightTextColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 4),
-
-                // Heatmap grid (with weekday labels on the left)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Weekday labels (Mon, Wed, Fri only)
-                    Column(
-                      children: List.generate(7, (i) {
-                        if (i == DateTime.monday % 7 ||
-                            i == DateTime.wednesday % 7 ||
-                            i == DateTime.friday % 7) {
-                          return Container(
-                            height: 16,
-                            alignment: Alignment.centerRight,
-                            margin: const EdgeInsets.symmetric(vertical: 2),
-                            child: Text(
-                              [
-                                'Mon',
-                                'Tue',
-                                'Wed',
-                                'Thu',
-                                'Fri',
-                                'Sat',
-                                'Sun',
-                              ][i],
-                              style: const TextStyle(
-                                fontSize: 9,
-                                color: kLightTextColor,
-                              ),
-                            ),
-                          );
-                        }
-                        return const SizedBox(height: 16);
-                      }),
-                    ),
-                    const SizedBox(width: 4),
-
-                    Row(
-                      children: weeks.map((week) {
-                        return Column(
-                          children: List.generate(7, (i) {
-                            final day = week[i];
-                            final level =
-                                day != null && allDays.containsKey(day)
-                                ? allDays[day]!
-                                : 0;
-                            final color = [
-                              Colors.grey.shade300,
-                              Colors.green.shade100,
-                              Colors.green.shade300,
-                              Colors.green.shade500,
-                              Colors.green.shade700,
-                            ][level];
-                            return Container(
-                              margin: const EdgeInsets.all(2),
-                              width: 14,
-                              height: 14,
-                              decoration: BoxDecoration(
-                                color: color,
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            );
-                          }),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ),
         ],
       ),
     );
-  }
-
-  // Helper for month abbreviations
-  String _monthAbbrev(int month) {
-    const names = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return names[month - 1];
   }
 }

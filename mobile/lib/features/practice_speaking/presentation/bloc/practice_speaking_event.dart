@@ -51,3 +51,11 @@ class SpeechErrorEvent extends PracticeSpeakingEvent {
 
 class MoveToPreviousQuestionEvent extends PracticeSpeakingEvent {}
 class MoveToNextQuestionEvent extends PracticeSpeakingEvent {}
+
+class UpdateRecognizedTextEvent extends PracticeSpeakingEvent {
+  final String text;
+  const UpdateRecognizedTextEvent(this.text);
+}
+class ClearRecognizedTextEvent extends PracticeSpeakingEvent {}
+
+

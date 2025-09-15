@@ -43,6 +43,13 @@ class PracticeSpeakingBloc
 
     on<MoveToPreviousQuestionEvent>(_onMoveToPreviousQuestion);
     on<MoveToNextQuestionEvent>(_onMoveToNextQuestion);
+    on<UpdateRecognizedTextEvent>((event, emit) {
+      emit(state.copyWith(recognizedText: event.text));
+    });
+    on<ClearRecognizedTextEvent>((event, emit) {
+    emit(state.copyWith(recognizedText: ''));
+    });
+
   }
 
   Future<void> _onStartSession(

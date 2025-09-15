@@ -7,14 +7,22 @@ import 'package:lissan_ai/core/network/network_info.dart';
 import 'package:lissan_ai/core/utils/helper/api_client_helper.dart';
 import 'package:lissan_ai/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:lissan_ai/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:lissan_ai/features/auth/data/datasources/streak_remote_data_source.dart';
 import 'package:lissan_ai/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:lissan_ai/features/auth/data/repositories/streak_repository_impl.dart';
 import 'package:lissan_ai/features/auth/domain/repositories/auth_repository.dart';
+import 'package:lissan_ai/features/auth/domain/repositories/streak_repository.dart';
+import 'package:lissan_ai/features/auth/domain/usecases/freeze_streak_usecase.dart';
+import 'package:lissan_ai/features/auth/domain/usecases/get_activity_calendar_usecase.dart';
+import 'package:lissan_ai/features/auth/domain/usecases/get_streak_info_usecase.dart';
 import 'package:lissan_ai/features/auth/domain/usecases/get_token_usecase.dart';
+import 'package:lissan_ai/features/auth/domain/usecases/get_user_usecase.dart';
 import 'package:lissan_ai/features/auth/domain/usecases/sign_in_usecase.dart';
 import 'package:lissan_ai/features/auth/domain/usecases/sign_in_with_token_usecase.dart';
 import 'package:lissan_ai/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:lissan_ai/features/auth/domain/usecases/sign_up_usecase.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:lissan_ai/features/auth/presentation/bloc/streak_bloc.dart';
 import 'package:lissan_ai/features/writting_assistant/data/datasources/email_remote_data_source.dart';
 import 'package:lissan_ai/features/writting_assistant/data/datasources/grammar_remote_data_sources.dart';
 import 'package:lissan_ai/features/writting_assistant/data/datasources/pronunciation_remote_data_source.dart';
@@ -126,6 +134,9 @@ Future<void> init() async {
   getIt.registerFactory(
     () => GetTokenUsecase(repository: getIt<AuthRepository>()),
   );
+  getIt.registerFactory(
+    () => GetUserUsecase(repository: getIt<AuthRepository>()),
+  );
 
   // ----------------------
   // Auth bloc
@@ -137,6 +148,7 @@ Future<void> init() async {
       signUpUsecase: getIt<SignUpUsecase>(),
       getTokenUsecase: getIt<GetTokenUsecase>(),
       signInWithTokenUsecase: getIt<SignInWithTokenUsecase>(),
+      getUserUsecase: getIt<GetUserUsecase>(),
     ),
   );
 
@@ -318,4 +330,29 @@ Future<void> init() async {
 
   // initialize service
   await getIt<SpeechToTextService>().init();
+
+  // steak
+
+  // Bloc
+  getIt.registerFactory(() => StreakBloc(repository: getIt()));
+
+  // Use cases
+  getIt.registerLazySingleton(() => FreezeStreakUsecase(repository: getIt()));
+  getIt.registerLazySingleton(
+    () => GetActivityCalendarUsecase(repository: getIt()),
+  );
+  getIt.registerLazySingleton(() => GetStreakInfoUsecase(repository: getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<StreakRepository>(
+    () => StreakRepositoryImpl(remoteDataSource: getIt(), networkInfo: getIt()),
+  );
+
+  // Data sources
+  getIt.registerLazySingleton<StreakRemoteDataSource>(
+    () => StreakRemoteDataSourceImpl(
+      client: getIt(),
+      authLocalDataSource: getIt(),
+    ),
+  );
 }

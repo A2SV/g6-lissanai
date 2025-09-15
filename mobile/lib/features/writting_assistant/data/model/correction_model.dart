@@ -1,4 +1,5 @@
 import 'package:lissan_ai/features/writting_assistant/domain/entities/correction.dart';
+import 'explanation_model.dart';
 
 class CorrectionModel extends Correction {
   CorrectionModel({
@@ -9,17 +10,9 @@ class CorrectionModel extends Correction {
 
   factory CorrectionModel.fromJson(Map<String, dynamic> json) {
     return CorrectionModel(
-      originalPhrase: json['original_phrase'],
-      correctedPhrase: json['corrected_phrase'],
-      explanation: json['explanation'],
+      originalPhrase: json['original_phrase'] ?? '',
+      correctedPhrase: json['corrected_phrase'] ?? '',
+      explanation: ExplanationModel.fromJson(json['explanation'] ?? {}),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'original_phrase': originalPhrase,
-      'corrected_phrase': correctedPhrase,
-      'explanation': explanation,
-    };
   }
 }

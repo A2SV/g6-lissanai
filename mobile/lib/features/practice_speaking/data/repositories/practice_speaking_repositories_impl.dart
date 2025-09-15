@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:lissan_ai/core/error/exceptions.dart';
 import 'package:lissan_ai/core/error/failure.dart';
 import 'package:lissan_ai/core/network/network_info.dart';
 import 'package:lissan_ai/features/practice_speaking/data/datasources/practice_speaking_remote_data_source.dart';
@@ -16,67 +17,73 @@ class PracticeSpeakingRepositoriesImpl implements PracticeSpeakingRepository {
     required this.networkInfo,
     required this.remoteDataSource,
   });
+  Future<Either<Failure, T>> _execute<T>(Future<T> Function() action) async {
+  try {
+    final result = await action();
+    return Right(result);
+  } on BadRequestException catch (e) {
+    return Left(ValidationFailure(message: e.message));
+  } on UnAuthorizedException catch (e) {
+    return Left(UnauthorizedFailure(message: e.message));
+  } on ConflictException catch (e) {
+    return Left(ConflictFailure(message: e.message));
+  } on NotFoundException catch (e) {
+    return Left(NotFoundFailure(message: e.message));
+  } on ServerException catch (e) {
+    return Left(ServerFailure(message: e.message));
+  } catch (_) {
+    return const Left(ServerFailure(message: 'Unexpected server error'));
+  }
+}
+
+  @override
+  Future<Either<Failure, InterviewQuestion>> getInterviewQuestion(
+    String sessionId,
+  ) async {
+    final isConnected = await networkInfo.isConnected;
+    if (!isConnected) {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+
+    return _execute(() => remoteDataSource.getInterviewQuestion(sessionId));
+  }
 
   @override
   Future<Either<Failure, PracticeSessionResult>> endPracticeSession(
     String sessionId,
   ) async {
     final isConnected = await networkInfo.isConnected;
-    if(isConnected){
-      try{
-      return Right(await remoteDataSource.endPracticeSession(sessionId));
-      }catch(e){
-        return const Left(ServerFailure(message: 'server error'));
-      }
-    }
-    else{
+    if (!isConnected) {
       return const Left(NetworkFailure(message: 'No internet connection'));
     }
+
+    return _execute(() => remoteDataSource.endPracticeSession(sessionId));
   }
 
   @override
-  Future<Either<Failure, InterviewQuestion>> getInterviewQuestion(
-    String sessionId,
-  ) async{
+  Future<Either<Failure, PracticeSessionStart>> startPracticeSession(
+    String type,
+  ) async {
     final isConnected = await networkInfo.isConnected;
-    if(isConnected){
-      try{
-        return Right(await remoteDataSource.getInterviewQuestion(sessionId));
-      }catch(e){
-        return const Left(ServerFailure(message: ('server failure')));
-      }
-    }else{
+    if (!isConnected) {
       return const Left(NetworkFailure(message: 'No internet connection'));
     }
-  }
 
-  @override
-  Future<Either<Failure, PracticeSessionStart>> startPracticeSession(String type) async{
-    final isConnected = await networkInfo.isConnected;
-    if(isConnected){
-      try{
-      return Right(await remoteDataSource.startPracticeSession(type));
-      }catch(e){
-        return const Left(ServerFailure(message: 'server error'));
-      }
-    }return const Left(NetworkFailure(message: 'no internet connection'));
+    return _execute(() => remoteDataSource.startPracticeSession(type));
   }
 
   @override
   Future<Either<Failure, AnswerFeedback>> submitAndGetAnswer(
     UserAnswer answer,
-  ) async{
+  ) async {
     final isConnected = await networkInfo.isConnected;
-    if(isConnected){
-      try{
-        return Right(await remoteDataSource.answerAndGetFeedback(answer));
-      }catch(e){
-        return const Left(ServerFailure(message: 'server error'));
-      }
-    }else{
-      return const Left(NetworkFailure(message: 'network error'));
+    if (!isConnected) {
+      return const Left(NetworkFailure(message: 'No internet connection'));
     }
+
+    return _execute(() => remoteDataSource.answerAndGetFeedback(answer));
   }
-  
+
+    
 
 }

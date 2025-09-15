@@ -35,10 +35,7 @@ class _EmailImprovePageState extends State<EmailImprovePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ConnectivityBloc, ConnectivityState>(
-      builder: (context, state) {
-        if (state is ConnectivityConnected) {
-          return BlocListener<WrittingBloc, WrittingState>(
+    return BlocListener<WrittingBloc, WrittingState>(
             listener: (context, state) {
               if (state is ImprovedEmailSaved) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -518,20 +515,6 @@ class _EmailImprovePageState extends State<EmailImprovePage> {
               ),
             ),
           );
-        } else {
-          return const Center(
-            child: Column(
-              children: [
-                Icon(Icons.wifi_off, color: Color(0xFF112D4F), size: 180),
-                Text(
-                  'Please check your internet connection',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                ),
-              ],
-            ),
-          );
-        }
-      },
-    );
+        
   }
 }

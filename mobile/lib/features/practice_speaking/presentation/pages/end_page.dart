@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lissan_ai/features/practice_speaking/data/models/practice_session_result_model.dart';
+import 'package:lissan_ai/features/practice_speaking/presentation/pages/mock_interview_page.dart';
 import 'package:lissan_ai/features/practice_speaking/presentation/widgets/circle_avatar_widget.dart';
 
 class EndPage extends StatelessWidget {
   final PracticeSessionResultModel feedback;
+  final int currentPage;
 
-  const EndPage({super.key, required this.feedback});
+  const EndPage({super.key, required this.feedback, required this.currentPage});
 
   @override
   Widget build(BuildContext context) {
@@ -71,49 +73,30 @@ class EndPage extends StatelessWidget {
                 ),
 
               const SizedBox(height: 30),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 20,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 20,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.exit_to_app),
-                    label: const Text('Exit'),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
             ],
           ),
         ),
       ),
+      floatingActionButton: ElevatedButton(
+        onPressed: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MockInterviewPage()), 
+          );
+
+          print('');
+          print('Retaking session, current page: $currentPage');
+          print('');
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF112D4F),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: const Text('Retake Session'),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 

@@ -21,3 +21,8 @@ class AuthenticatedState extends AuthState {
 }
 
 class UnAuthenticatedState extends AuthState {}
+
+class UserInfoState extends AuthState {
+  final User user;
+  UserInfoState({required this.user});
+}

@@ -22,7 +22,7 @@ class GrammarRepositoryImpl implements GrammarRepository {
         final grammarResult = await remoteDataSources.checkGrammar(englishText);
         return Right(grammarResult);
       } catch (e) {
-        return const Left(ServerFailure(message: 'Failed to check grammar'));
+        return Left(ServerFailure(message: e.toString()));
       }
     } else {
       return const Left(ServerFailure(message: 'No internet connection'));

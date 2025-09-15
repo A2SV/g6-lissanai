@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:lissan_ai/core/utils/constants/practice_speaking_constants.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
@@ -12,12 +12,11 @@ import 'package:just_audio/just_audio.dart';
 
 import 'package:lissan_ai/features/practice_speaking/presentation/widgets/animated_audio.dart';
 
+
 enum ConversationState { idle, connected, listening, processing, speaking }
 
 class RecordFreeSpeechAudio extends StatefulWidget {
-  final String websocketUrl;
-
-  const RecordFreeSpeechAudio({super.key, required this.websocketUrl});
+  const RecordFreeSpeechAudio({super.key});
 
   @override
   State<RecordFreeSpeechAudio> createState() => _RecordFreeSpeechAudioState();
@@ -32,12 +31,12 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
 
   ConversationState _currentState = ConversationState.idle;
   String _statusText = 'Tap to Speak';
-  bool _isRecording = false;
+  bool _isRecording = false; 
 
   double _currentVolume = 0.0;
   Timer? _aiAnimationTimer;
   final Random _random = Random();
-  static const double _silenceThresholdDb = -10.0;
+  static const double _silenceThresholdDb = -20.0;
   static const Duration _maxSessionDuration = Duration(minutes: 3);
 
   bool _isSessionActive = false;
@@ -54,9 +53,11 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
   @override
   void dispose() {
     _log('--- Widget Disposing ---');
+    _sessionTimer?.cancel();
     _silenceTimer?.cancel();
     _aiAnimationTimer?.cancel();
     _audioSubscription?.cancel();
+    _amplitudeSubscription?.cancel();
     _channel?.sink.close();
     _audioRecorder.dispose();
     _audioPlayer.dispose();
@@ -73,6 +74,7 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
     setState(() {
       _statusText = text;
       _currentState = state;
+      
       if (state != ConversationState.listening &&
           state != ConversationState.speaking) {
         _currentVolume = 0.0;
@@ -80,52 +82,54 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
     });
   }
 
-  // --- NEW: Method to start the entire conversation session ---
+  
+
   void _startSession() {
     if (_isSessionActive) return;
-    _log("--- SESSION STARTED ---");
-    setState(() {
-      _isSessionActive = true;
-    });
+    _log('--- SESSION STARTED ---');
+    _isSessionActive = true;
 
     _sessionTimer = Timer(_maxSessionDuration, () {
-      _log("--- SESSION TIMEOUT: 3 minutes reached ---");
+      _log('--- SESSION TIMEOUT: 3 minutes reached ---');
       _endSession(timeout: true);
     });
 
-    // Start the very first turn
+    
     _startRecording();
   }
 
-  // --- NEW: Method to end the entire conversation session ---
   void _endSession({bool timeout = false}) {
     if (!_isSessionActive) return;
-    _log("--- SESSION ENDED ---");
+    _log('--- SESSION ENDED ---');
 
     _sessionTimer?.cancel();
-    _sessionTimer = null;
-
-    // Make sure we stop recording if the user ends the session while speaking
     if (_isRecording) {
-      _stopRecording();
+      _stopRecording(isSessionEnding: true);
     }
+    _isSessionActive = false;
 
     setState(() {
-      _isSessionActive = false;
       if (timeout) {
-        _statusText = "Session ended (3 min timeout)";
+        _statusText = 'Session ended (3 min timeout)';
       } else {
-        _statusText = "Session Ended";
+        _statusText = 'Session Ended';
       }
-      _currentState = ConversationState.connected;
+      _currentState = ConversationState.idle; 
     });
   }
 
+  
+
   Future<void> _initializeWebSocket() async {
-    _log('Attempting to connect to WebSocket: ${widget.websocketUrl}');
+    _log(
+      'Attempting to connect to WebSocket: ${PracticeSpeakingConstants.webSocketUrl}',
+    );
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(widget.websocketUrl));
-      _log('WebSocket connection object created. Listening to stream...');
+      _channel = WebSocketChannel.connect(
+        Uri.parse(PracticeSpeakingConstants.webSocketUrl),
+      );
+      await _channel!.ready; 
+      _log('✅ WebSocket connection established. Listening to stream...');
 
       _channel!.stream.listen(
         (message) {
@@ -143,29 +147,31 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
         },
         onDone: () {
           _log(
-            '❌ [WebSocket onDone]: Connection closed by server. Code: ${_channel?.closeCode}, Reason: ${_channel?.closeReason}',
+            '❌ [WebSocket onDone]: Connection closed. Code: ${_channel?.closeCode}',
           );
-          _setStatus('Disconnected. Tap to reconnect.', ConversationState.idle);
-          _stopRecording();
-          _channel = null;
+          if (_isSessionActive) { 
+            _setStatus('Disconnected. Tap to reconnect.', ConversationState.idle);
+            _endSession();
+          }
         },
         onError: (error) {
           _log('❌ [WebSocket onError]: $error');
-          _setStatus('Error. Tap to reconnect.', ConversationState.idle);
-          _stopRecording();
-          _channel = null;
+          if (_isSessionActive) {
+            _setStatus('Error. Tap to reconnect.', ConversationState.idle);
+            _endSession();
+          }
         },
       );
       _setStatus('Tap to Speak', ConversationState.connected);
-      _log('✅ WebSocket stream listener is active.');
     } catch (e) {
       _log('❌ [WebSocket EXCEPTION]: Failed to connect: $e');
       _setStatus('Connection Error', ConversationState.idle);
     }
   }
 
+
   Future<void> _playAudio(Uint8List audioBytes) async {
-    _setStatus("AI Speaking...", ConversationState.speaking);
+    _setStatus('AI Speaking...', ConversationState.speaking);
     _aiAnimationTimer?.cancel();
     _aiAnimationTimer = Timer.periodic(const Duration(milliseconds: 100), (
       timer,
@@ -181,39 +187,37 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
 
     try {
       await _audioPlayer.setAudioSource(BytesAudioSource(audioBytes));
-      _audioPlayer.play();
-      _log("Playing AI audio from memory...");
+      await _audioPlayer.play();
+      _log('Playing AI audio...');
 
       _audioPlayer.playerStateStream.listen((playerState) {
         if (playerState.processingState == ProcessingState.completed) {
           _aiAnimationTimer?.cancel();
-          _audioPlayer.stop();
 
-          // --- KEY CHANGE HERE ---
-          // After AI finishes, check if the session should continue.
           if (_isSessionActive) {
-            _log("AI finished, starting next turn automatically.");
-            _startRecording(); // This creates the loop
+            _log('AI finished speaking. Automatically starting to listen for user.');
+            _startRecording();
           } else {
-            _log(
-              "AI finished, but session is now inactive. Returning to idle.",
-            );
-            _setStatus("Session Ended", ConversationState.connected);
+            _log('AI finished, session is inactive.');
+            _setStatus('Session Ended', ConversationState.idle);
           }
         }
       });
     } catch (e) {
-      _log("Error playing audio: $e");
+      _log('Error playing audio: $e');
       _aiAnimationTimer?.cancel();
-      _setStatus("Audio Error", ConversationState.connected);
+      if (_isSessionActive) {
+        _startRecording();
+      }
     }
   }
+  
 
   Future<void> _startRecording() async {
     _log('Attempting to start recording...');
     if (_isRecording) return;
-    if (_channel == null) {
-      _log('...channel is null, trying to reconnect.');
+    if (_channel == null || _channel?.closeCode != null) {
+      _log('...channel is null or closed, trying to reconnect.');
       await _initializeWebSocket();
       if (_channel == null) {
         _log('...reconnection failed. Aborting recording.');
@@ -223,47 +227,43 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
 
     if (await Permission.microphone.request().isDenied) {
       _log('...permission denied. Aborting.');
+      _setStatus('Microphone permission needed', ConversationState.idle);
       return;
     }
 
     try {
-      if (await _audioRecorder.hasPermission()) {
-        _log('...permission granted. Starting stream from recorder.');
-        _isRecording = true;
-        _setStatus('Listening...', ConversationState.listening);
+      _isRecording = true;
+      _setStatus('Listening...', ConversationState.listening);
 
-        final audioStream = await _audioRecorder.startStream(
-          const RecordConfig(sampleRate: 16000, numChannels: 1, bitRate: 48000),
-        );
+      final audioStream = await _audioRecorder.startStream(
+        const RecordConfig(sampleRate: 16000, numChannels: 1),
+      );
 
-        _audioSubscription = audioStream.listen((audioChunk) {
-          if (_channel?.sink != null && _isRecording) {
-            _channel!.sink.add(audioChunk);
-          }
-        }, onError: (err) => _stopRecording());
+      _audioSubscription = audioStream.listen(
+        (audioChunk) {
+          _channel?.sink.add(audioChunk);
+        },
+        onError: (err) {
+          _log('Audio stream error: $err');
+          _stopRecording();
+        },
+      );
 
-        _amplitudeSubscription = _audioRecorder
-            .onAmplitudeChanged(const Duration(milliseconds: 200))
-            .listen((amp) {
-              final volume = amp.current;
+      _amplitudeSubscription = _audioRecorder
+          .onAmplitudeChanged(const Duration(milliseconds: 160))
+          .listen((amp) {
+        if (!mounted) return;
+        final volume = amp.current;
+        final minDb = -60.0;
+        final normalized = (volume.clamp(minDb, 0.0) - minDb) / (0.0 - minDb);
+        setState(() => _currentVolume = normalized);
 
-              _log(
-                '🎤 Amplitude: ${volume.toStringAsFixed(2)} dB (Threshold is $_silenceThresholdDb dB)',
-              );
+        if (volume > _silenceThresholdDb) {
+          _resetSilenceTimer();
+        }
+      });
 
-              final minDb = -60.0;
-              final normalized =
-                  (volume.clamp(minDb, 0.0) - minDb) / (0.0 - minDb);
-              if (mounted) setState(() => _currentVolume = normalized);
-
-              if (volume > _silenceThresholdDb) {
-                _log('... Volume is ABOVE threshold. Resetting silence timer.');
-                _resetSilenceTimer();
-              }
-            });
-
-        _startSilenceTimer();
-      }
+      _startSilenceTimer();
     } catch (e) {
       _log('❌ Error starting recording: $e');
       _setStatus('Recording Error', ConversationState.connected);
@@ -271,36 +271,31 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
     }
   }
 
-  void _stopRecording() {
-    // Note: This only stops a single TURN, not the whole session.
-    _log("Attempting to stop recording TURN...");
-    if (!_isRecording) {
-      return;
-    }
+  void _stopRecording({bool isSessionEnding = false}) {
+    if (!_isRecording) return;
+    _log('Attempting to stop recording TURN...');
     _isRecording = false;
     _audioRecorder.stop();
     _audioSubscription?.cancel();
     _amplitudeSubscription?.cancel();
     _silenceTimer?.cancel();
-    _silenceTimer = null;
 
-    // Set status to "Processing..." while waiting for AI, but only if the session is still active
-    if (_isSessionActive) {
-      _setStatus("Processing...", ConversationState.processing);
+    
+    if (_isSessionActive && !isSessionEnding) {
+      _setStatus('Processing...', ConversationState.processing);
     }
-    _log("✅ Stopped listening TURN.");
+    _log('✅ Stopped listening TURN.');
   }
 
   void _sendEndOfSpeechSignal() {
     _log("🤫 Silence/Manual stop detected. Sending 'end_of_speech'.");
     if (_channel?.sink != null) {
       _channel!.sink.add(jsonEncode({'type': 'end_of_speech'}));
-      _log('...signal sent.');
-    } else {
-      _log('...could not send signal, channel is null.');
     }
     _stopRecording();
   }
+
+  
 
   void _startSilenceTimer() {
     _silenceTimer?.cancel();
@@ -315,69 +310,128 @@ class _RecordFreeSpeechAudioState extends State<RecordFreeSpeechAudio> {
 
   void _resetSilenceTimer() {
     _silenceTimer?.cancel();
-
     _silenceTimer = Timer(const Duration(milliseconds: 2000), () {
       if (_isRecording) {
-        _log('🤫 Silence detected by timer.');
+        _log('🤫 Silence detected after speech.');
         _sendEndOfSpeechSignal();
       }
     });
   }
 
+  
+  void _handleMicTap() {
+    switch (_currentState) {
+      case ConversationState.idle:
+      case ConversationState.connected:
+        
+        
+        if (!_isSessionActive) {
+          _startSession();
+        } else {
+          _startRecording();
+        }
+        break;
+      case ConversationState.listening:
+        
+        _sendEndOfSpeechSignal();
+        break;
+      case ConversationState.processing:
+      case ConversationState.speaking:
+        
+        _log('Ignoring tap while state is $_currentState');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 32),
-        Text(
-          _statusText,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 64),
+    
+    
+    final bool isMicActive = _currentState == ConversationState.listening;
+    final bool canTapMic = _currentState == ConversationState.connected ||
+        _currentState == ConversationState.listening ||
+        _currentState == ConversationState.idle;
 
-        // Show the blob and End button ONLY when a session is active
-        if (_isSessionActive) ...[
-          AnimatedAudioBlob(
-            state: _currentState,
-            volume: _currentVolume,
-            onTap: () {
-              // The blob's only job during a session is to manually end a turn
-              if (_currentState == ConversationState.listening) {
-                _sendEndOfSpeechSignal();
-              }
-            },
-          ),
-          const SizedBox(height: 40),
-          ElevatedButton.icon(
-            onPressed: _endSession,
-            icon: const Icon(Icons.stop_circle_outlined),
-            label: const Text("End Session"),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700]),
-          ),
-        ] else ...[
-          SizedBox(
-            width: 150,
-            height: 150,
-            child: ElevatedButton(
-              onPressed: _startSession,
-              style: ElevatedButton.styleFrom(
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(20),
-                backgroundColor: Colors.blue,
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [Icon(Icons.play_arrow, size: 60), Text("Start")],
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 32),
+            AnimatedAudioBlob(
+              state: _currentState,
+              volume: _currentVolume,
+              onTap: () {
+                
+                if (_currentState == ConversationState.listening) {
+                  _sendEndOfSpeechSignal();
+                }
+              },
+            ),
+            const SizedBox(height: 20),
+            
+            Text(
+              _statusText,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.black12)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            
+            IconButton(
+              onPressed: () {
+                _endSession();
+                Navigator.of(context).pop();
+              },
+              icon: const Icon(Icons.close, size: 32, color: Colors.red),
+            ),
+
+            GestureDetector(
+              onTap: _handleMicTap, 
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isMicActive
+                      ? Colors.green
+                      : (canTapMic ? Colors.blue : Colors.grey[400]),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isMicActive
+                              ? Colors.green
+                              : (canTapMic ? Colors.blue : Colors.grey))
+                          .withOpacity(0.4),
+                      blurRadius: 12,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  isMicActive ? Icons.mic : Icons.mic_none,
+                  size: 40,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 96), // Space to keep layout consistent
-        ],
-      ],
+            
+          ],
+        ),
+      ),
     );
   }
 }
+
 
 class BytesAudioSource extends StreamAudioSource {
   final Uint8List _buffer;
@@ -393,8 +447,7 @@ class BytesAudioSource extends StreamAudioSource {
       contentLength: endVal - startVal,
       offset: startVal,
       stream: Stream.value(_buffer.sublist(startVal, endVal)),
-
-      contentType: 'audio/aac',
+      contentType: 'audio/aac', 
     );
   }
 }

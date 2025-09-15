@@ -68,10 +68,16 @@ class Dashboard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Column(
                       children: [
-                        Image.asset(
-                          'assets/videos/dashboard.gif',
+                        Container(
                           width: 100,
                           height: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(100),
+                            image: const DecorationImage(
+                              image: AssetImage('assets/images/avatar.png'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         const Text(

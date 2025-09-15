@@ -4,6 +4,7 @@ import 'package:lissan_ai/core/error/failure.dart';
 import 'package:lissan_ai/core/network/network_info.dart';
 import 'package:lissan_ai/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:lissan_ai/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:lissan_ai/features/auth/data/models/user_model.dart';
 import 'package:lissan_ai/features/auth/domain/entities/user.dart';
 import 'package:lissan_ai/features/auth/domain/repositories/auth_repository.dart';
 
@@ -99,10 +100,20 @@ class AuthRepositoryImpl implements AuthRepository {
       return false;
     }
   }
-  
+
   @override
-  Future<String> getToken() {
-    // TODO: implement getToken
-    throw UnimplementedError();
+  Future<Either<Failure, User>> getUser() async {
+    try {
+      final cachedUserMap = await localDataSource.getCachedUser();
+
+      if (cachedUserMap != null) {
+        final user = UserModel.fromJson(cachedUserMap);
+        return Right(user);
+      } else {
+        return const Left(CacheFailure(message: 'No cached user found'));
+      }
+    } catch (e) {
+      return Left(CacheFailure(message: 'Failed to get user info: $e'));
+    }
   }
 }

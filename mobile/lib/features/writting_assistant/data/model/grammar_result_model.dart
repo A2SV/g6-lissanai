@@ -9,8 +9,8 @@ class GrammarResultModel extends GrammarResult {
 
   factory GrammarResultModel.fromJson(Map<String, dynamic> json) {
     return GrammarResultModel(
-      correctedText: json['corrected_text'],
-      corrections: (json['corrections'] as List)
+      correctedText: json['corrected_text'] ?? '',
+      corrections: (json['corrections'] as List? ?? [])
           .map((c) => CorrectionModel.fromJson(c))
           .toList(),
     );

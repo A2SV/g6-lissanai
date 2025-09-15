@@ -12,7 +12,6 @@ import 'package:lissan_ai/features/writting_assistant/presentation/pages/pronoun
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

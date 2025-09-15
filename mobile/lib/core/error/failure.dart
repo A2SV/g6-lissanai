@@ -22,3 +22,16 @@ class CacheFailure extends Failure {
 class UnexpectedFailure extends Failure {
   const UnexpectedFailure({required super.message});
 }
+
+class ValidationFailure extends Failure {
+  const ValidationFailure({required super.message});
+}
+class UnauthorizedFailure extends Failure {
+  const UnauthorizedFailure({required super.message});
+}
+class NotFoundFailure extends Failure {
+  const NotFoundFailure({required super.message});
+}
+class ConflictFailure extends Failure {
+  const ConflictFailure({required super.message});
+}

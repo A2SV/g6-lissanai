@@ -17,15 +17,14 @@ class SpeechPage extends StatelessWidget {
       child: BlocBuilder<PracticeSpeakingBloc, PracticeSpeakingState>(
         builder: (context, state) {
           return RecordButton(
+            onNext : onNext,
             isListening: state.isListening,
-            recognizedText: state.recognizedText.isEmpty
-                ? 'Press the mic to start speaking...'
-                : state.recognizedText,
+            recognizedText: state.recognizedText,
             onPressed: () {
               if (state.isListening) {
                 bloc.add(StopListeningEvent());
                 CustomPopupDemo(message: state.recognizedText, onNext: onNext).showCustomPopup(context);
-
+                bloc.add(ClearRecognizedTextEvent());
               } else {
                 bloc.add(StartListeningEvent());
               }
@@ -38,8 +37,9 @@ class SpeechPage extends StatelessWidget {
   }
 }
 
-class RecordButton extends StatelessWidget {
+class RecordButton extends StatefulWidget {
   final VoidCallback onPressed;
+  final VoidCallback onNext;
   final bool isListening;
   final String recognizedText;
 
@@ -48,65 +48,107 @@ class RecordButton extends StatelessWidget {
     required this.onPressed,
     required this.isListening,
     required this.recognizedText,
+    required this.onNext,
   });
 
   @override
+  State<RecordButton> createState() => _RecordButtonState();
+}
+
+class _RecordButtonState extends State<RecordButton> {
+  late TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController(text: widget.recognizedText);
+  }
+
+  @override
+  void didUpdateWidget(covariant RecordButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update controller only when recognizedText changes
+    if (widget.recognizedText != controller.text) {
+      controller.text = widget.recognizedText;
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final bloc = context.read<PracticeSpeakingBloc>();
+
     return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFF4EC3FD), width: 0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
+          // 🎤 Mic button
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               shape: const CircleBorder(),
               padding: const EdgeInsets.all(20),
-              backgroundColor: isListening ? const Color.fromARGB(255, 167, 38, 88) : const Color(0xFF112D4F),
-              shadowColor: isListening ? const Color.fromARGB(255, 176, 36, 68) : const Color(0xFF112D4F),
-              elevation: 8,
+              backgroundColor: widget.isListening
+                  ? const Color.fromARGB(255, 167, 38, 88)
+                  : const Color(0xFF112D4F),
             ),
-            onPressed: onPressed,
-            child: Column(
-              children: [
-                Icon(
-                  isListening ? Icons.mic_off : Icons.mic,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                Text(
-                  isListening ? 'Recording' : 'Start',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ],
+            onPressed: widget.onPressed,
+            child: Icon(
+              widget.isListening ? Icons.mic_off : Icons.mic,
+              color: Colors.white,
+              size: 30,
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            isListening ? 'Listening... 🎤' : 'Tap mic to start recording',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
 
-            height: 50,
-            child: SingleChildScrollView(
-              child: Text(
-                recognizedText,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+          const SizedBox(height: 12),
+
+          // ✍️ Text input
+          TextField(
+            controller: controller,
+            textDirection: TextDirection.ltr, // ✅ force left-to-right
+            onChanged: (value) {
+              bloc.add(UpdateRecognizedTextEvent(value));
+            },
+            decoration: InputDecoration(
+              hintText: 'Type your answer here...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              contentPadding: const EdgeInsets.all(12),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  controller.clear();
+                  bloc.add(ClearRecognizedTextEvent());
+                },
               ),
             ),
-          )
+          ),
+
+          const SizedBox(height: 16),
+
+          ElevatedButton.icon(
+            icon: const Icon(Icons.send),
+            label: const Text('Submit Answer'),
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                CustomPopupDemo(
+                  message: controller.text,
+                  onNext: widget.onNext,
+                ).showCustomPopup(context);
+                bloc.add(ClearRecognizedTextEvent());
+              }
+            },
+          ),
         ],
       ),
     );

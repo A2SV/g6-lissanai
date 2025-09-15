@@ -25,24 +25,34 @@ class GrammarRemoteDataSourcesImpl implements GrammarRemoteDataSources {
       throw const ServerException(message: 'No access token found');
     }
 
-    final response = await client.post(
-      Uri.parse(
-        writting_constant.baseUrl + writting_constant.checkGrammarEndpoint,
-      ),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'text': englishText}),
+    debugPrint('🔑 Access Token: $token');
+
+    final url = Uri.parse(
+      writting_constant.baseUrl + writting_constant.checkGrammarEndpoint,
     );
 
-    if (response.statusCode == 200) {
-      final result = GrammarResultModel.fromJson(jsonDecode(response.body));
-      debugPrint('Parsed result: $result');
-      return result;
-    } else {
-      var status = response.statusCode;
-      throw ServerException(message: 'Failed to check grammar $status');
+    try {
+      final response = await client.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'text': englishText}),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> decoded = jsonDecode(response.body);
+        final result = GrammarResultModel.fromJson(decoded);
+
+        return result;
+      } else {
+        throw ServerException(
+          message: 'Failed to check grammar. Status: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw ServerException(message: e.toString());
     }
   }
 }

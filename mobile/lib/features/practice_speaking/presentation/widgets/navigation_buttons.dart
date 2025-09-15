@@ -5,6 +5,7 @@ class NavigationButtons extends StatelessWidget {
   final int maxPage;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
+  final bool status;
 
   const NavigationButtons({
     super.key,
@@ -12,6 +13,7 @@ class NavigationButtons extends StatelessWidget {
     required this.maxPage,
     required this.onPrevious,
     required this.onNext,
+    required this.status,
   });
 
   @override
@@ -38,22 +40,31 @@ class NavigationButtons extends StatelessWidget {
             ),
           ),
         const SizedBox(width: 32),
-          ElevatedButton(
-            onPressed: onNext,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF112D4F),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-              ),
-              padding: const EdgeInsets.all(12),
+        ElevatedButton(
+          onPressed:status ? null : onNext,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF112D4F),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
-            child:  Row(
-              children: [
-                Text(currentPage < maxPage ? 'Next Question  ': 'End Session', style: const TextStyle(color: Colors.white)),
-                const Icon(Icons.arrow_forward, color: Colors.white),
-              ],
-            ),
+            padding: const EdgeInsets.all(12),
           ),
+          child: status ? const Center(child: 
+          SizedBox(width: 20, height: 20,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),),) : 
+          Row(
+            children: [
+              Text(
+                currentPage < maxPage ? 'Next Question  ' : 'End Session',
+                style: const TextStyle(color: Colors.white),
+              ),
+              const Icon(Icons.arrow_forward, color: Colors.white),
+            ],
+          ),
+        ),
       ],
     );
   }

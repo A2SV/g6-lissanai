@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:lissan_ai/features/practice_speaking/presentation/bloc/practice_speaking_bloc.dart';
 import 'package:lissan_ai/features/practice_speaking/presentation/pages/end_page.dart';
+import 'package:lissan_ai/features/practice_speaking/presentation/widgets/conversation_page.dart';
 import 'package:lissan_ai/features/practice_speaking/presentation/widgets/question_card.dart';
 import 'package:lissan_ai/features/practice_speaking/presentation/widgets/record_button.dart';
 import 'package:lissan_ai/features/practice_speaking/presentation/widgets/navigation_buttons.dart';
-import 'package:lissan_ai/features/practice_speaking/presentation/widgets/record_free_speech_audio.dart';
 import 'package:shimmer/shimmer.dart';
 
 class MockInterviewPage extends StatefulWidget {
@@ -56,9 +56,6 @@ class _MockInterviewPageState extends State<MockInterviewPage> {
       backgroundColor: Colors.white,
 
       body: BlocConsumer<PracticeSpeakingBloc, PracticeSpeakingState>(
-        listenWhen: (previous, current) =>
-            previous.currentQuestion != current.currentQuestion ||
-            previous.status != current.status,
         listener: (context, state) {
           if (state.status == BlocStatus.sessionStarted) {
             context.read<PracticeSpeakingBloc>().add(
@@ -70,7 +67,10 @@ class _MockInterviewPageState extends State<MockInterviewPage> {
               state.endSessionFeedback != null) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => EndPage(feedback: state.endSessionFeedback!),
+                builder: (_) => EndPage(
+                  feedback: state.endSessionFeedback!,
+                  currentPage: _currentPage,
+                ),
               ),
             );
           }
@@ -160,6 +160,7 @@ class _MockInterviewPageState extends State<MockInterviewPage> {
         SpeechPage(onNext: () => _handleNextQuestion(context, state)),
         const SizedBox(height: 16),
         NavigationButtons(
+          status: state.status == BlocStatus.questionLoading,
           currentPage: _currentPage,
           maxPage: _maxPage,
           onPrevious: () {
@@ -191,7 +192,7 @@ class _MockInterviewPageState extends State<MockInterviewPage> {
 
     if (state.currentQuestionIndex < state.questions.length - 1) {
       context.read<PracticeSpeakingBloc>().add(MoveToNextQuestionEvent());
-    } else if (state.currentQuestionIndex >= 5 || _currentPage > _maxPage) {
+    } else if (_currentPage > _maxPage) {
       context.read<PracticeSpeakingBloc>().add(
         EndPracticeSessionEvent(sessionId: state.session.sessionId),
       );
@@ -211,10 +212,7 @@ class _MockInterviewPageState extends State<MockInterviewPage> {
           style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 30),
-        const RecordFreeSpeechAudio(
-          websocketUrl:
-              'wss://lissan-ai-backend-dev.onrender.com/api/v1/ws/conversation',
-        ),
+        const ConversationPage(),
       ],
     );
   }

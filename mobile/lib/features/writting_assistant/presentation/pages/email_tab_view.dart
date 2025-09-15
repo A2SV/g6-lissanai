@@ -72,6 +72,7 @@ class _EmailTabViewState extends State<EmailTabView> {
               ),
             ),
           ],
+
         ),
         body: TabBarView(
           children: _pages.map((page) {

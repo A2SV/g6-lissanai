@@ -41,10 +41,7 @@ class _EmailDraftPageState extends State<EmailDraftPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ConnectivityBloc, ConnectivityState>(
-      builder: (context, state) {
-        if (state is ConnectivityConnected) {
-          return Column(
+    return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
@@ -443,21 +440,6 @@ class _EmailDraftPageState extends State<EmailDraftPage> {
               ),
             ],
           );
-        } else {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.wifi_off, color: Color(0xFF112D4F), size: 180),
-                Text(
-                  'Please check your connection',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                ),
-              ],
-            ),
-          );
-        }
-      },
-    );
+        
   }
 }

@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:lissan_ai/core/error/exceptions.dart';
 import 'package:lissan_ai/features/writting_assistant/data/model/sentence_model_model.dart';
@@ -22,8 +20,6 @@ class SentenceRemoteDataSourceImpl extends SentenceRemoteDataSource {
       ),
       headers: {'Content-Type': 'application/json'},
     );
-    debugPrint('Response status: ${response.statusCode}');
-    debugPrint('Response body: ${response.body}');
     if (response.statusCode == 200) {
       return SentenceModel.fromJson(json.decode(response.body));
     } else {

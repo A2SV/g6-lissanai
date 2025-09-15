@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:lissan_ai/core/error/failure.dart';
+import 'package:http/http.dart' as http;
+import 'package:lissan_ai/core/error/exceptions.dart';
 import 'package:lissan_ai/core/utils/constants/practice_speaking_constants.dart';
 import 'package:lissan_ai/core/utils/helper/api_client_helper.dart';
 import 'package:lissan_ai/features/practice_speaking/data/models/answer_feed_back_model.dart';
@@ -24,35 +25,60 @@ class PracticeSpeakingRemoteDataSourceImpl
     implements PracticeSpeakingRemoteDataSource {
   final ApiClientHelper apiClientHelper;
   PracticeSpeakingRemoteDataSourceImpl({required this.apiClientHelper});
+
+dynamic handleResponse(http.Response response) {
+  final body = response.body.isNotEmpty
+      ? jsonDecode(response.body) as Map<String, dynamic>
+      : {};
+
+  switch (response.statusCode) {
+    case 200:
+    case 201:
+      return body;
+
+    case 400:
+      throw BadRequestException(message: body['error'] ?? 'Bad request');
+    case 401:
+      throw UnAuthorizedException(message: body['error'] ?? 'Unauthorized');
+    case 403:
+      throw UnAuthorizedException(message: body['error'] ?? 'Forbidden');
+    case 404:
+      throw NotFoundException(message: body['error'] ?? 'Not found');
+
+    case 409:
+      throw ConflictException(message: body['error'] ?? 'Conflict');
+
+    case 500:
+    default:
+      throw ServerException(
+        message: body['error'] ?? 'Unexpected error: ${response.statusCode}',
+      );
+  }
+}
+
   @override
   Future<PracticeSessionResult> endPracticeSession(String sessionId) async {
     final Map<String, String> body = {'session_id': sessionId};
+
     final response = await apiClientHelper.post(
       PracticeSpeakingConstants.endSession(sessionId),
       body,
     );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return PracticeSessionResultModel.fromJson(data);
-    } else {
-      throw ServerFailure(message: 'error ${response.statusCode}');
-    }
+
+    // ✅ Let handleResponse throw if status is not OK
+    final responseBody = handleResponse(response);
+
+    return PracticeSessionResultModel.fromJson(responseBody);
   }
+
 
   @override
   Future<InterviewQuestion> getInterviewQuestion(String sessionId) async {
     final response = await apiClientHelper.get(
       PracticeSpeakingConstants.getQuestion(sessionId),
     );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final decoded = json.decode(response.body);
-      final Map<String, dynamic> data = decoded;
-      return InterviewQuestionModel.fromJson(data);
-    } else {
-      throw ServerFailure(
-        message: 'error on get interview ${response.statusCode}',
-      );
-    }
+    final responseBody = handleResponse(response);
+    return InterviewQuestionModel.fromJson(responseBody);
   }
 
   @override
@@ -62,17 +88,8 @@ class PracticeSpeakingRemoteDataSourceImpl
       PracticeSpeakingConstants.startSession,
       body,
     );
-    print(response.body);
-    print(response.statusCode);
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final decoded = json.decode(response.body);
-      final Map<String, dynamic> data = decoded;
-      return PracticeSessionStartModel.fromJson(data);
-    } else {
-      throw ServerFailure(
-        message: 'error on start session ${response.statusCode}',
-      );
-    }
+    final responseBody = handleResponse(response);
+    return PracticeSessionStartModel.fromJson(responseBody);
   }
 
   @override
@@ -85,12 +102,7 @@ class PracticeSpeakingRemoteDataSourceImpl
       PracticeSpeakingConstants.submitAnswer,
       body,
     );
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      final Map<String, dynamic> data = decoded;
-      return AnswerFeedbackModel.fromJson(data);
-    } else {
-      throw ServerFailure(message: 'error ${response.statusCode}');
-    }
+   final responseBody = handleResponse(response);
+    return AnswerFeedbackModel.fromJson(responseBody);
   }
 }

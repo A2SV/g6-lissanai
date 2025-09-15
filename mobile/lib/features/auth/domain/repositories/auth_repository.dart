@@ -7,5 +7,6 @@ abstract class AuthRepository {
   Future<Either<Failure, User>> signIn(User user);
   Future<Either<Failure, Unit>> signOut();
   Future<Either<Failure, User>> signInWithToken();
+  Future<Either<Failure, User>> getUser();
   Future<bool> isTokenValid();
 }

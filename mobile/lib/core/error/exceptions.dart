@@ -14,6 +14,9 @@ class ServerException extends AppException {
   const ServerException({required super.message});
 }
 
+class NotFoundException extends AppException {
+  const NotFoundException({required super.message});
+}
 class NetworkException extends AppException {
   const NetworkException({required super.message});
 }

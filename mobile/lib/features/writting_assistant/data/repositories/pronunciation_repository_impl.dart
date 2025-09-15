@@ -8,7 +8,6 @@ import 'package:lissan_ai/features/writting_assistant/domain/repositories/pronun
 
 class PronunciationRepositoryImpl implements PronunciationRepository {
   final PronunciationRemoteDataSource remoteDataSource;
-
   PronunciationRepositoryImpl({required this.remoteDataSource});
 
   @override
@@ -17,8 +16,10 @@ class PronunciationRepositoryImpl implements PronunciationRepository {
     File audioFile,
   ) async {
     try {
-      final remoteResponse =
-          await remoteDataSource.sendPronunciation(sentence, audioFile);
+      final remoteResponse = await remoteDataSource.sendPronunciation(
+        sentence,
+        audioFile,
+      );
       return Right(remoteResponse);
     } on ServerException {
       return const Left(ServerFailure(message: 'Failed to send pronunciation'));
