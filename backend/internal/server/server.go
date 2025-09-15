@@ -5,7 +5,8 @@ import (
 	"log"
 	"os"
 	"time"
-
+	"net/http"
+	
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
@@ -91,13 +92,15 @@ func New() *gin.Engine {
 
 	// --- Middleware ---
 	authMiddleware := middleware.AuthMiddleware(jwtService)
-
-	// This is a public endpoint used by services like UptimeRobot to keep the service alive.
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+// This is a public endpoint used by services like UptimeRobot to keep the service alive.
+	healthHandler := func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
 			"status": "UP",
 		})
-	})
+	}
+
+	router.GET("/health", healthHandler)
+	router.HEAD("/health", healthHandler) 
 	
 	// --- Routes ---
 	apiV1 := router.Group("/api/v1")
