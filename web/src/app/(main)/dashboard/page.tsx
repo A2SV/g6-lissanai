@@ -58,17 +58,26 @@ const ProgressBar = ({ value }: ProgressBarProps) => (
 );
 
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [streak, setStreak] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStreak = async () => {
-      console.log("Session:", session);
-      console.log("Access token:", session?.accessToken);
-      console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+    if (status === "loading") {
+      return; // Wait for session to load
+    }
 
+    if (status === "unauthenticated") {
+      setError("No session available. Please log in.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
       if (!session?.accessToken) {
-        console.error("No access token available");
+        setError("No session available. Please log in.");
+        setLoading(false);
         return;
       }
 
@@ -101,18 +110,16 @@ export default function Dashboard() {
         const data = await response.json();
         console.log("Streak data received:", data);
         setStreak(data.current_streak);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching streak:", error);
-        // Fallback: Keep default streak
+        setError("Failed to fetch streak data.");
+        setLoading(false);
       }
     };
 
-    if (session) {
-      fetchStreak();
-    } else {
-      console.log("No session available, skipping streak fetch");
-    }
-  }, [session]);
+    fetchData();
+  }, [session, status]);
 
   return (
     <div className="min-h-screen bg-white">
