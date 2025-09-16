@@ -121,7 +121,7 @@ func New() *gin.Engine {
 
 		grammar := apiV1.Group("/grammar/check")
 		{
-			grammar.POST("/", authMiddleware, grammer_handler.GrammarCheck)
+			grammar.POST("/", grammer_handler.GrammarCheck)
 		}
 
 		// --- Chat/Interview routes ---
