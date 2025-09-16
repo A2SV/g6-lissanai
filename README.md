@@ -6,61 +6,165 @@ LissanAI is an AI-powered application designed to help Ethiopian users master pr
 
 ---
 
-### ✨ Key Features
+## ✨ Key Features
 
 *   **🗣️ Mock Interview Practice:** Simulate interviews and get instant AI feedback on grammar, clarity, and pronunciation.
 *   **💬 Free Speaking Mode:** Practice conversational English on any topic with a responsive AI partner.
 *   **✍️ AI Writing Assistant:** Draft professional emails from Amharic prompts or proofread existing English text.
 *   **🇪🇹 Amharic Support:** Get key grammatical explanations in Amharic to ensure full understanding.
+*   **📚 Learning Paths:** Structured courses with lessons, quizzes, and progress tracking.
+*   **🔥 Streak Tracking:** Gamified learning with daily streaks and activity calendars.
+*   **🎯 Pronunciation Assessment:** AI-powered pronunciation feedback and improvement suggestions.
 
 ---
 
-### 🚀 Getting Started
+## 🚀 Quick Start
 
-First, clone the repository to your local machine:
-```
+### Prerequisites
+- **Go 1.24+** (for backend)
+- **Node.js 18+** (for web)
+- **Flutter 3.0+** (for mobile)
+- **MongoDB 7+** (local or Atlas)
+
+### Clone and Setup
+```bash
 git clone https://github.com/A2SV/g6-lissanai.git
+cd g6-lissanai
 ```
+
+### Backend (Go + MongoDB)
+```bash
+cd backend
+# Create .env file (see backend/README.md for details)
+go mod download
+go run cmd/api/main.go
 ```
-cd lissanai
+- **API:** `http://localhost:8080`
+- **Swagger:** `http://localhost:8080/swagger/index.html`
+- **Health:** `http://localhost:8080/health`
+
+### Web (Next.js)
+```bash
+cd web
+npm install
+npm run dev
 ```
-Then, follow the instructions for each service below.
+- **Web App:** `http://localhost:3000`
 
-#### Backend (Go)
-
-1.  **Navigate to directory:** `cd backend/`
-2.  **Install dependencies:** `go mod tidy`
-3.  **Run the server:** `go run ./cmd/api`
-
- 
-#### Web (Next.js)
-
-1.  **Navigate to directory:** `cd web/`
-2.  **Install dependencies:** `npm install`
-3.  **Start development server:** `npm run dev`
-
-#### Mobile (Flutter)
-
-1.  **Navigate to directory:** `cd mobile/`
-2.  **Install dependencies:** `flutter pub get`
-3.  **Run the app:** `flutter run`
+### Mobile (Flutter)
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
 
 ---
 
-### ⚙️ Project Structure
+## 📁 Project Structure
 
 This repository is a monorepo containing the core components of LissanAI.
+
 ```
-lissanai/
-├── backend/ # Handles all AI logic and core services
-├── mobile/ # Flutter application for Android & iOS
-├── web/ # Next.js web interface
+g6-lissanai/
+├── backend/           # Go API server with MongoDB
+│   ├── cmd/api/       # Application entrypoint
+│   ├── internal/      # Core business logic
+│   │   ├── handler/   # HTTP handlers
+│   │   ├── usecase/   # Business logic
+│   │   ├── service/   # Domain services
+│   │   ├── repository/# Data access layer
+│   │   └── client/    # External API clients
+│   ├── tests/         # Comprehensive test suite
+│   ├── postman/       # API collection
+│   └── docs/          # Swagger documentation
+├── web/               # Next.js web application
+│   ├── src/app/       # App router pages
+│   ├── src/components/# React components
+│   └── src/lib/       # Utilities and configurations
+├── mobile/            # Flutter mobile app
+│   ├── lib/features/  # Feature-based architecture
+│   ├── lib/core/      # Core utilities
+│   └── android/ios/   # Platform-specific code
 └── README.md
 ```
 
-### 🛠️ Technologies Used
+---
 
-**Mobile:** Flutter | **Web:** Next.js | **Backend:** Go/Python/Node.js | **AI:** OpenAI GPT & Google Speech-to-Text
+## 🛠️ Tech Stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Backend** | Go (Gin), MongoDB, JWT | API server, authentication, data persistence |
+| **Web** | Next.js, TypeScript, Tailwind CSS | Web interface, responsive design |
+| **Mobile** | Flutter, Dart | Cross-platform mobile app |
+| **AI Services** | Google Gemini, Groq, Whisper, Unreal Speech | Grammar checking, speech-to-text, text-to-speech |
+| **Authentication** | JWT, Google OAuth | Secure user authentication |
+| **Testing** | Go testing, testify | Unit, integration, and E2E tests |
+
+---
+
+## 🔧 Development
+
+### Backend Development
+- **Testing:** `go test ./...` (unit + integration + e2e)
+- **Coverage:** `go test -cover ./...`
+- **API Docs:** Swagger UI at `/swagger/index.html`
+- **Postman:** Import `backend/postman/LissanAI_Backend.postman_collection.json`
+
+### Web Development
+- **Dev Server:** `npm run dev`
+- **Build:** `npm run build`
+- **Lint:** `npm run lint`
+
+### Mobile Development
+- **Run:** `flutter run`
+- **Build:** `flutter build apk` (Android) / `flutter build ios` (iOS)
+- **Test:** `flutter test`
+
+---
+
+## 📚 Documentation
+
+- **Backend API:** [Backend README](backend/README.md) | [Swagger UI](http://localhost:8080/swagger/index.html)
+- **Web App:** [Web README](web/README.md)
+- **Mobile App:** [Mobile README](mobile/README.md)
+- **Postman Collection:** [Backend API Collection](backend/postman/LissanAI_Backend.postman_collection.json)
+
+---
+
+## 🌐 Deployment
+
+### Backend
+- **Production:** Deployed on Render with MongoDB Atlas
+- **Health Check:** `https://lissan-ai-backend-dev.onrender.com/health`
+- **API Docs:** `https://lissan-ai-backend-dev.onrender.com/swagger/index.html`
+
+### Web
+- **Production:** Deployed on Vercel/Render
+- **URL:** `https://lissanai.onrender.com`
+
+### Mobile
+- **Android:** Google Play Store (planned)
+- **iOS:** App Store (planned)
+
+---
+
+## 🧪 Testing
+
+The backend includes comprehensive testing:
+- **Unit Tests:** Service and usecase layer testing
+- **Integration Tests:** Handler and database integration
+- **E2E Tests:** Complete user flow testing
+- **Mocking:** External service mocking for isolated testing
+
+Run tests:
+```bash
+cd backend
+go test ./...                    # All tests
+go test ./tests/unit/...         # Unit tests only
+INTEGRATION_TESTS=true go test ./tests/integration/...  # Integration tests
+E2E_TESTS=true go test ./tests/e2e/...                  # E2E tests
+```
 
 ---
 
