@@ -62,7 +62,6 @@ export default function GrammarCoachPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_GRAMMAR_API_TOKEN}`,
         },
         body: JSON.stringify({ text }),
       });
