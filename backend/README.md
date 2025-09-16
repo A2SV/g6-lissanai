@@ -35,6 +35,42 @@ backend/
 - MongoDB 7+ (local) or MongoDB Atlas
 - Make sure ports 8080 (API) and 27017 (Mongo) are available
 
+### Quick Start (Local)
+1) Clone and enter backend directory
+```
+cd backend
+```
+2) Create `.env` (see Environment Variables below), ensure MongoDB is available
+3) Install dependencies and run
+```
+go mod download
+go run cmd/api/main.go
+```
+4) Open Swagger: `http://localhost:8080/swagger/index.html`
+5) Health: `GET http://localhost:8080/health`
+
+### Running Tests
+- All tests (unit + integration + e2e):
+```
+go test ./...
+```
+- Unit tests only (service/usecase focus):
+```
+go test ./tests/unit/...
+```
+- Integration tests (handlers + DB, requires MongoDB):
+```
+INTEGRATION_TESTS=true go test ./tests/integration/...
+```
+- End-to-end (auth/user flows through HTTP with middleware):
+```
+E2E_TESTS=true go test ./tests/e2e/...
+```
+- Coverage:
+```
+go test -cover ./...
+```
+
 ### Environment Variables
 Required for various features. Create a `.env` in `backend/` or set in your environment.
 
@@ -77,33 +113,28 @@ SMTP_PASSWORD=app-password
 FRONTEND_URL=http://localhost:3000
 ```
 
-### Run Locally
-1) Install deps
+### Authentication Model
+- Access tokens are JWTs signed with `JWT_SECRET`. Send on protected routes:
 ```
-cd backend
-go mod download
+Authorization: Bearer <access_token>
 ```
-2) Start MongoDB (if not using Docker): ensure MongoDB is running locally or use Atlas
-3) Run API
+- Refresh token is an opaque string stored in MongoDB. Exchange via:
 ```
-go run cmd/api/main.go
+POST /api/v1/auth/refresh
+{
+  "refresh_token": "..."
+}
 ```
-4) Open Swagger: `http://localhost:8080/swagger/index.html`
-5) Health check: `GET http://localhost:8080/health`
-
-### Run with Docker
-Using docker-compose (runs MongoDB and API):
+- Social auth: the web app exchanges Google OAuth with backend via:
 ```
-cd backend
-docker compose up --build
+POST /api/v1/auth/social
+{
+  "provider": "google",
+  "access_token": "<provider access token>",
+  "name": "<optional>",
+  "email": "<optional>"
+}
 ```
-API: `http://localhost:8080`
-
-The compose file sets:
-- `MONGODB_URI=mongodb://admin:password@mongodb:27017/lissanai?authSource=admin`
-- `JWT_SECRET=your-super-secret-jwt-key-change-this-in-production`
-
-Set additional envs via an `.env` file or by editing `docker-compose.yml` if you need AI/email features.
 
 ### API Overview
 - Base path: `/api/v1`
@@ -128,7 +159,31 @@ Key route groups:
   - `GET /info`, `POST /freeze`, `POST /activity`, `GET /calendar`
 - Realtime speaking: `GET /api/v1/ws/conversation` (WebSocket)
 
-Refer to Swagger for request/response schemas.
+### Postman Collection
+- A Postman collection file is provided under `backend/postman/LissanAI_Backend.postman_collection.json` with folders for Auth, Users, Grammar, Interview, Email, Pronunciation, Learning, Streak.
+- Variables provided:
+  - `baseUrl` (default `http://localhost:8080/api/v1`)
+  - `accessToken` (set after login)
+- Usage:
+  1. Import the collection into Postman.
+  2. Set the `baseUrl` variable in the collection or Postman environment.
+  3. Run `Auth > Register` or `Auth > Login` to obtain tokens.
+  4. Click `Set Access Token` (pre-request script) or manually set `accessToken`.
+  5. Call protected routes; they include `Authorization: Bearer {{accessToken}}` automatically.
+
+### Docker
+Using docker-compose (runs MongoDB and API):
+```
+cd backend
+docker compose up --build
+```
+API: `http://localhost:8080`
+
+The compose file sets:
+- `MONGODB_URI=mongodb://admin:password@mongodb:27017/lissanai?authSource=admin`
+- `JWT_SECRET=your-super-secret-jwt-key-change-this-in-production`
+
+Set additional envs via an `.env` file or by editing `docker-compose.yml` if you need AI/email features.
 
 ### Data and Services
 - MongoDB connection configured in `internal/database/mongodb.go`
@@ -149,10 +204,15 @@ go run scripts/seed_learning_data.go
 - Serve behind HTTPS and a reverse proxy; enable logs/metrics/health checks
 
 ### Troubleshooting
-- 401 errors: ensure `Authorization: Bearer <token>` header is set and not expired
+- 401 errors: ensure `Authorization: Bearer <token>` header is set and not expired; verify `JWT_SECRET` matches the server’s
 - 500 on AI routes: verify `GEMINI_API_KEY`/`GROQ_API_KEY`/`HF_API_KEY`/`UNREAL_SPEECH_*` are set
-- Mongo connection issues: check `MONGODB_URI`, network, and credentials
+- Mongo connection issues: check `MONGODB_URI`, network, and credentials; ensure DB is reachable
 - Swagger not loading: confirm server started and visit `/swagger/index.html`
+
+### Contributing
+- Conventional commits preferred
+- Add tests for new features (`backend/tests/...`)
+- Ensure `go test ./...` passes before PR
 
 ### License
 MIT (see root LICENSE)
