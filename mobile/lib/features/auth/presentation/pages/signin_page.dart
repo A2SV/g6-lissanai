@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_event.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_state.dart';
+import 'package:lissan_ai/features/auth/presentation/widgets/custom_button.dart';
 import 'package:lissan_ai/features/auth/presentation/widgets/custom_text_field.dart';
 
 class SignInPage extends StatefulWidget {
@@ -113,26 +114,44 @@ class _SignInPageState extends State<SignInPage> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
-                  vertical: 80,
+                  vertical: 50,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 10),
                       AnimatedScale(
                         scale: isLoading ? 0.9 : 1.0,
                         duration: const Duration(milliseconds: 300),
                         child: const Text(
-                          'Login',
+                          'Sign In',
                           style: TextStyle(
-                            fontSize: 28,
+                            fontSize: 30,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF112D4F),
+                            color: Color(0xFF08CC2F),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 15),
+                      Text(
+                        'Continue Your Path To English Mastery!🚀',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF757575),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      CustomButton(
+                        onPressed: () {},
+                        text: 'Sign In With Google',
+                        borderColor: const Color(0xFF92FFB3),
+                        textColor: const Color(0xFF000000),
+                      ),
+                      const SizedBox(height: 20),
+                      const OrDivider(text:'Or continue with email'),
+                      const SizedBox(height: 20),
                       Form(
                         key: formKey,
                         child: Column(
@@ -140,16 +159,16 @@ class _SignInPageState extends State<SignInPage> {
                           children: [
                             CustomTextField(
                               controller: emailController,
-                              title: 'Email Address',
-                              icon: Icons.email,
-                              hintText: 'Enter your email',
+                              title: 'Email Address 📧',
+                              icon: Icons.email_outlined,
+                              hintText: 'your.email@example.com',
                               enabled: !isLoading,
                             ),
                             const SizedBox(height: 15),
                             CustomTextField(
                               controller: passwordController,
-                              title: 'Password',
-                              icon: Icons.lock,
+                              title: 'Password 🔐',
+                              icon: Icons.lock_rounded,
                               hintText: 'Enter your password',
                               obscure: !isPasswordVisible,
                               enabled: !isLoading,
@@ -177,10 +196,11 @@ class _SignInPageState extends State<SignInPage> {
                               ),
                               Text(
                                 'Remember Me',
-                                style: TextStyle(
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w400,
                                   color: isLoading
                                       ? Colors.grey
-                                      : const Color(0xFF112D4F),
+                                      : const Color(0xFF000000),
                                 ),
                               ),
                             ],
@@ -193,7 +213,7 @@ class _SignInPageState extends State<SignInPage> {
                                 fontWeight: FontWeight.w600,
                                 color: isLoading
                                     ? Colors.grey
-                                    : const Color(0xFF112D4F),
+                                    : const Color(0xFF08CC2F),
                               ),
                             ),
                           ),
@@ -222,33 +242,47 @@ class _SignInPageState extends State<SignInPage> {
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF112D4F),
+                            // backgroundColor:  const Color(0xFF08B129),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            // padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                             elevation: 2,
-                            shadowColor: const Color(
-                              0xFF112D4F,
-                            ).withOpacity(0.3),
+                            backgroundColor: Colors.transparent, 
+                            shadowColor: Colors.transparent
                           ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Sign In',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color.fromARGB(255, 10, 209, 50),
+                                  Color.fromARGB(255, 54, 134, 231),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              child: isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Sign In',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -275,7 +309,7 @@ class _SignInPageState extends State<SignInPage> {
                                 fontWeight: FontWeight.w600,
                                 color: isLoading
                                     ? Colors.grey
-                                    : const Color(0xFF112D4F),
+                                    : const Color(0xFF08B129),
                               ),
                             ),
                           ),

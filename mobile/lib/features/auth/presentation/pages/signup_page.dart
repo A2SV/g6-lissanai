@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,6 +6,7 @@ import 'package:lissan_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_event.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_state.dart';
 import 'package:lissan_ai/features/auth/presentation/widgets/custom_text_field.dart';
+import 'package:lissan_ai/features/auth/presentation/widgets/custom_button.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -149,22 +151,24 @@ class _SignUpPageState extends State<SignUpPage> {
               padding: const EdgeInsets.symmetric(horizontal: 35),
               child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 20),
                     Text(
-                      'Join the Adventure!',
+                      'Create Account',
                       style: GoogleFonts.inter(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
+                        color: const Color(0xFF08B129),
                       ),
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Start your English mastery journey today',
+                      'join 100+ learners already winning',
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
+                        color: const Color(0xFFC9C9C9),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -182,7 +186,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           const SizedBox(height: 10),
                           CustomTextField(
                             controller: emailController,
-                            title: 'Email Address',
+                            title: 'Email Address 📧',
                             icon: Icons.email,
                             hintText: 'your.email@example.com',
                             enabled: !isLoading,
@@ -190,7 +194,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           const SizedBox(height: 10),
                           CustomTextField(
                             controller: passwordController,
-                            title: 'Password',
+                            title: 'Password 🔐',
                             icon: Icons.lock,
                             hintText: 'Create a strong password',
                             obscure: !isPasswordVisible,
@@ -199,7 +203,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           const SizedBox(height: 10),
                           CustomTextField(
                             controller: confirmPasswordController,
-                            title: 'Confirm Password',
+                            title: 'Confirm Password ✅',
                             icon: Icons.lock,
                             hintText: 'Confirm your password',
                             obscure: !isConfirmPasswordVisible,
@@ -228,6 +232,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       children: [
                         Checkbox(
                           value: termsAccepted,
+                          activeColor: const Color(0xFF112D4F),
                           onChanged: isLoading
                               ? null
                               : (value) {
@@ -237,18 +242,34 @@ class _SignUpPageState extends State<SignUpPage> {
                                 },
                         ),
                         const SizedBox(width: 8),
-                        const Expanded(
+                        Expanded(
                           child: Text.rich(
                             TextSpan(
-                              text: 'I agree to the Terms of Service ',
-                              style: TextStyle(fontSize: 14),
+                              text: 'I agree to the ',
+                              style: const TextStyle(fontSize: 14, color: Colors.black),
                               children: [
                                 TextSpan(
-                                  text: 'and Privacy Policy',
-                                  style: TextStyle(
-                                    color: Color(0xFF112D4F),
+                                  text: 'Terms of Service',
+                                  style: const TextStyle(
+                                    color: Color(0xFF08B129),
                                     fontWeight: FontWeight.bold,
                                   ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      // Navigator.pushNamed(context, '/terms'); // or launch URL
+                                    },
+                                ),
+                                const TextSpan(text: ' and '),
+                                TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: const TextStyle(
+                                    color: Color(0xFF08B129),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      // Navigator.pushNamed(context, '/privacy'); // or launch URL
+                                    },
                                 ),
                               ],
                             ),
@@ -305,22 +326,13 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                     const SizedBox(height: 15),
-                    const Row(
-                      children: [
-                        Expanded(
-                          child: Divider(color: Colors.grey, thickness: 1),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            'Or',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(color: Colors.grey, thickness: 1),
-                        ),
-                      ],
+                    const OrDivider(text: 'OR'),
+                    const SizedBox(height: 15),
+                    CustomButton(
+                      onPressed: (){},
+                      text: 'Continue With Google',
+                      borderColor: const Color(0xFF92FFB3),
+                      textColor: const Color(0xFF000000),
                     ),
                     const SizedBox(height: 15),
                     Row(
@@ -331,10 +343,10 @@ class _SignUpPageState extends State<SignUpPage> {
                         GestureDetector(
                           onTap: () => Navigator.pushNamed(context, '/sign-in'),
                           child: Text(
-                            'Sign in',
+                            'Sign in👋',
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF112D4F),
+                              color: const Color(0xFF08B129),
                               fontSize: 16,
                             ),
                           ),

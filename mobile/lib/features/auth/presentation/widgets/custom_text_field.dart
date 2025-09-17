@@ -49,6 +49,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           enabled: widget.enabled,
           obscureText: _obscureText,
           controller: widget.controller,
+          cursorColor: const Color(0xFF000000),
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 10,
@@ -65,7 +66,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFD9D8D8)),
+              borderSide: const BorderSide(color: Color(0xFF000000)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
