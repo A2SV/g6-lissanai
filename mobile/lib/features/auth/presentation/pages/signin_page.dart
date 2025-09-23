@@ -6,6 +6,7 @@ import 'package:lissan_ai/features/auth/presentation/bloc/auth_event.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_state.dart';
 import 'package:lissan_ai/features/auth/presentation/widgets/custom_button.dart';
 import 'package:lissan_ai/features/auth/presentation/widgets/custom_text_field.dart';
+import 'package:lissan_ai/features/auth/presentation/widgets/gradient_button.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -103,11 +104,11 @@ class _SignInPageState extends State<SignInPage> {
             if (authState is AuthErrorState) {
               _showErrorBottomSheet(context, authState.message);
             }
-          },
-          builder: (context, authState) {
-            if (authState is AuthenticatedState) {
+                        if (authState is AuthenticatedState) {
               Navigator.pushReplacementNamed(context, '/navigation');
             }
+          },
+          builder: (context, authState) {
             final isLoading = authState is AuthLoadingState;
             return GestureDetector(
               onTap: () => FocusScope.of(context).unfocus(),
@@ -220,70 +221,19 @@ class _SignInPageState extends State<SignInPage> {
                         ],
                       ),
                       const SizedBox(height: 18),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        width: double.infinity,
-                        height: isLoading ? 60 : 50,
-                        child: ElevatedButton(
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                                  if (formKey.currentState!.validate()) {
-                                    final email = emailController.text.trim();
-                                    final password = passwordController.text
-                                        .trim();
-                                    FocusScope.of(context).unfocus();
-                                    context.read<AuthBloc>().add(
-                                      SignInEvent(
-                                        email: email,
-                                        password: password,
-                                      ),
-                                    );
-                                  }
-                                },
-                          style: ElevatedButton.styleFrom(
-                            // backgroundColor:  const Color(0xFF08B129),
-                            foregroundColor: Colors.white,
-                            // padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 2,
-                            backgroundColor: Colors.transparent, 
-                            shadowColor: Colors.transparent
-                          ),
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [
-                                  Color.fromARGB(255, 10, 209, 50),
-                                  Color.fromARGB(255, 54, 134, 231),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Container(
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              child: isLoading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Sign In',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ),
+                      GradientButton(
+                        text: 'Sign In',
+                        isLoading: isLoading,
+                        onPressed: () {
+                          if (formKey.currentState!.validate()) {
+                            final email = emailController.text.trim();
+                            final password = passwordController.text.trim();
+                            FocusScope.of(context).unfocus();
+                            context.read<AuthBloc>().add(
+                              SignInEvent(email: email, password: password),
+                            );
+                          }
+                        },
                       ),
                       const SizedBox(height: 15),
                       Row(

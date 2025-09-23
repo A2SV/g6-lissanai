@@ -7,6 +7,7 @@ import 'package:lissan_ai/features/auth/presentation/bloc/auth_event.dart';
 import 'package:lissan_ai/features/auth/presentation/bloc/auth_state.dart';
 import 'package:lissan_ai/features/auth/presentation/widgets/custom_text_field.dart';
 import 'package:lissan_ai/features/auth/presentation/widgets/custom_button.dart';
+import 'package:lissan_ai/features/auth/presentation/widgets/gradient_button.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -278,53 +279,29 @@ class _SignUpPageState extends State<SignUpPage> {
                       ],
                     ),
                     const SizedBox(height: 15),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                if (!termsAccepted) {
-                                  _showErrorBottomSheet(
-                                    context,
-                                    'You must accept the Terms and Privacy Policy',
-                                  );
-                                  return;
-                                }
-                                if (formKey.currentState!.validate() &&
-                                    confirmPasswordError == null) {
-                                  context.read<AuthBloc>().add(
-                                    SignUpEvent(
-                                      name: nameController.text.trim(),
-                                      email: emailController.text.trim(),
-                                      password: passwordController.text.trim(),
-                                    ),
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF112D4F),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Create Account',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                      ),
+                    GradientButton(
+                      text: 'Create Account',
+                      isLoading: isLoading,
+                      onPressed: () {
+                        if (!termsAccepted) {
+                          _showErrorBottomSheet(
+                            context,
+                            'You must accept the Terms and Privacy Policy',
+                          );
+                          return;
+                        }
+                        if (formKey.currentState!.validate() && confirmPasswordError == null) {
+                          context.read<AuthBloc>().add(
+                            SignUpEvent(
+                              name: nameController.text.trim(),
+                              email: emailController.text.trim(),
+                              password: passwordController.text.trim(),
+                            ),
+                          );
+                        }
+                      },
                     ),
+
                     const SizedBox(height: 15),
                     const OrDivider(text: 'OR'),
                     const SizedBox(height: 15),
