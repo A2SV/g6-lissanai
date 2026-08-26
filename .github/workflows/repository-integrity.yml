@@ -1,0 +1,38 @@
+name: Repository integrity
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject known repository payloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          self=':(exclude).github/workflows/repository-integrity.yml'
+          payload='global[.]i="A9-3284-2"|global.{0,24}9-[0-9]{4}-[0-9]+|NONCE_FANOUT|BLOCK_MULTIPLE|rmcej%otb%|e9b53a7c-2342-4b15-b02d-bd8b8f6a03f9'
+          packages='@kolbo/mcp|agentgui|godot-kit|envpack-conf|postcss-initial-provider|tailwindcss-motion-advanced|tailwindcss-style-animate|tailwind-mainanimation|tailwind-autoanimation|tailwindcss-typography-style|tailwindcss-style-modify|tailwindcss-animate-style|@common-stack/generate-plugin'
+
+          if git grep -InE "$payload" -- . "$self"; then
+            echo "Known malicious payload detected."
+            exit 1
+          fi
+          if git grep -InE "$packages" -- '**/package.json' '**/package-lock.json' '**/yarn.lock' '**/pnpm-lock.yaml' "$self"; then
+            echo "Known malicious dependency detected."
+            exit 1
+          fi
+          if git ls-files | grep -E '(^|/)config[.]bat$|(^|/)temp_(auto|interactive)_push[.]bat$'; then
+            echo "Known malicious helper file detected."
+            exit 1
+          fi
+          if git ls-files | grep -E '(^|/)[.]env($|[.])|(^|/)[.]npmrc$' | grep -Ev '[.]example$|[.]sample$|[.]template$'; then
+            echo "Tracked credential-bearing file detected."
+            exit 1
+          fi
